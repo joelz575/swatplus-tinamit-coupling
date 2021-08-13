@@ -3,13 +3,12 @@ import shutil
 import socket
 import subprocess
 
-from _vars import gen_variables_swatp
+from tinamit.config import _
 from tinamit.envolt.bf import ModeloBF
+from tinamit.mod import VariablesMod
 from tinamit_idm.puertos import IDMEnchufes
 
-from tinamit.mod import VariablesMod, Variable
-from tinamit.config import _
-
+from _vars import gen_variables_swatp
 
 
 class ModeloSWATPlus(ModeloBF):
@@ -46,7 +45,7 @@ class ModeloSWATPlus(ModeloBF):
                 raise ValueError('A start date is necessary when using SWAT+')
             super().iniciar_modelo(corrida=corrida)
 
-            #iniciate SWATPlus Model
+            # iniciate SWATPlus Model
             símismo.proc = subprocess.Popen(
                 [símismo.obt_conf('exe'), str(símismo.servidor.puerto), símismo.servidor.dirección],
                 cwd=símismo.direc_trabajo
@@ -67,7 +66,8 @@ class ModeloSWATPlus(ModeloBF):
         if símismo.connectar:
             # Mandar los valores nuevas a SWATPlus
             for var in rebanada.resultados:
-                print("var: "+var)
+                print("var: " + var)
+                # check for special variable
                 símismo.servidor.cambiar(var.var, var.var.obt_val())
 
             # Correr un paso de simulaccion
@@ -92,7 +92,7 @@ class ModeloSWATPlus(ModeloBF):
                 split_line = line.split(' ')
                 uso_de_tierra = split_line[0]
                 símismo.uso_de_tierra.append(uso_de_tierra)
-                print("Landuse: " + uso_de_tierra + "\tNumber: " + str(counter-1))
+                print("Landuse: " + uso_de_tierra + "\tNumber: " + str(counter - 1))
             counter += 1
         símismo.archivo_uso_de_tierra.close()
 
