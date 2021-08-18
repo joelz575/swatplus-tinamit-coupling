@@ -80,20 +80,15 @@ class ModeloSWATPlus(ModeloBF):
                     change_index = np.full(land_use.shape, False)
                     diff = agrl_area - var.var.obt_val()
                     matrix_to_change = agrl_areas if diff > 0 else nagrl_areas
-                    min_area = np.min(matrix_to_change)
+                    min_area = np.min(matrix_to_change[matrix_to_change > 0])
                     while diff > min_area:
                         diff_hru = np.abs(matrix_to_change - diff)
-                        min_difference_index = np.argmin(diff_hru)
+                        min_difference_index = np.argmin(diff_hru[~change_index])
                         diff -= matrix_to_change[min_difference_index]
                         change_index[min_difference_index] = True
-
-                    for i in change_index:
-                        closest = 0
-                        for f in range(len(land_use)):
-                            if (land_use[f] not in símismo.agrl_uses) and abs(i-f) < abs(i-closest):
-                                closest = f
-
-                        land_use[i] = land_use[closest]
+                    choices, frq = np.unique(land_use[agrl_indexes if diff > 0 else nagrl_indexes], return_counts=True)
+                    choice = np.random.choice(choices, np.sum(change_index), p=frq/np.sum(frq))
+                    land_use[change_index] = choice
                     símismo.servidor.cambiar('luse', land_use)
                 else:
                     símismo.servidor.cambiar(str(var), var.var.obt_val())
