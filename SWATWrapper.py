@@ -2,6 +2,7 @@ import os
 import shutil
 import socket
 import subprocess
+import numpy as np
 
 from tinamit.config import _
 from tinamit.envolt.bf import ModeloBF
@@ -27,6 +28,7 @@ class ModeloSWATPlus(ModeloBF):
 
         símismo.HUÉSPED = socket.gethostbyname(socket.gethostname())
         símismo.archivo = archivo
+        print(archivo)
         símismo.variables = gen_variables_swatp()
         variablesMod = VariablesMod(variables=símismo.variables)
         símismo.connectar = connectar
@@ -60,15 +62,44 @@ class ModeloSWATPlus(ModeloBF):
             )
 
     def unidad_tiempo(símismo):
-        return 'dias'
+        return 'day'
 
     def incrementar(símismo, rebanada):
         if símismo.connectar:
             # Mandar los valores nuevas a SWATPlus
             for var in rebanada.resultados:
-                print("var: " + var)
-                # check for special variable
-                símismo.servidor.cambiar(var.var, var.var.obt_val())
+                print("var: " + str(var))
+                if (str(var) == 'agrl_km2'):
+                    símismo.deter_área()
+                    land_use = np.array(símismo.servidor.recibir(("luse")))
+                    agrl_indexes = np.where(np.isin(land_use, símismo.agrl_uses), 1, 0)
+                    nagrl_indexes = np.where(agrl_indexes, 0, 1)
+                    agrl_area = np.sum(agrl_indexes * símismo.área_de_tierra)
+                    change_index = []
+                    if agrl_area - var.var.obt_val() > 0:
+                        agrl_areas = [agrl_indexes[i] * [int(f) for f in símismo.área_de_tierra][i] for i in
+                                      range(len(agrl_indexes))]
+
+                        for i in range(len(agrl_areas)):
+                            #trying with changing only one hru
+                            if agrl_areas[i] > (agrl_area - var.var.obt_val())/2 and agrl_areas[i] < (agrl_area - var.var.obt_val())*1.5:
+                                change_index.append(i)
+                                break
+                            #trying with changing multiple hru's
+                            elif agrl_areas[i] < agrl_area - var.var.obt_val():
+                                change_index.append(i)
+                                agrl_area += agrl_areas[i]
+
+                    for i in change_index:
+                        closest = 0
+                        for f in range(len(land_use)):
+                            if (land_use[f] not in símismo.agrl_uses) and abs(i-f) < abs(i-closest):
+                                closest = f
+
+                        land_use[i] = land_use[closest]
+                    símismo.servidor.cambiar('luse', land_use)
+                else:
+                    símismo.servidor.cambiar(str(var), var.var.obt_val())
 
             # Correr un paso de simulaccion
             símismo.servidor.incrementar(rebanada.n_pasos)
@@ -84,7 +115,7 @@ class ModeloSWATPlus(ModeloBF):
         return True
 
     def deter_uso_de_tierra(símismo):
-        símismo.archivo_uso_de_tierra = open(símismo.direc_trabajo + '\\landuse.lum', 'r')
+        símismo.archivo_uso_de_tierra = open(símismo.archivo + '/landuse.lum', 'r')
         símismo.uso_de_tierra = []
         counter = 0
         for line in símismo.archivo_uso_de_tierra:
@@ -95,6 +126,23 @@ class ModeloSWATPlus(ModeloBF):
                 print("Landuse: " + uso_de_tierra + "\tNumber: " + str(counter - 1))
             counter += 1
         símismo.archivo_uso_de_tierra.close()
+
+    def deter_área(símismo):
+        símismo.archivo_uso_de_tierra = open(símismo.archivo + '/hru.con', 'r')
+        símismo.área_de_tierra = []
+        counter = 0
+        for line in símismo.archivo_uso_de_tierra:
+            if 1 < counter:
+                split_line = line.split('    ')
+                area = split_line[6]
+                símismo.área_de_tierra.append(float(area))
+                print("Area: " + area + "\tHRU Number: " + str(counter))
+            counter += 1
+        símismo.archivo_uso_de_tierra.close()
+
+    def add_luses(símismo, uses: [], classification='AGRL'):
+        if classification == 'AGRL':
+            símismo.agrl_uses = uses
 
     def cerrar(símismo):
         # close model

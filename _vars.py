@@ -14,6 +14,12 @@ def gen_variables_swatp() -> [Variable]:
 
 # Un diccionario de variables SWAT+. Ver la documentación SWAT+ para más detalles.
 _info_vars = {
+    'agrl_km2':
+        {'nombre': 'Area of Agricultural Land', 'unid': 'km^2', 'ingr': True,
+         'egr': False},
+    'nagrl_km2':
+        {'nombre': 'Area of Non-Agricultural Land', 'unid': 'km^2', 'ingr': True,
+         'egr': False},
     'sd_props':
         {'nombre': 'Name Not Available', 'unid': '', 'ingr': True,
          'egr': True},
