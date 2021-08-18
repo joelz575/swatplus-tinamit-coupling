@@ -74,21 +74,18 @@ class ModeloSWATPlus(ModeloBF):
                     land_use = np.array(símismo.servidor.recibir(("luse")))
                     agrl_indexes = np.where(np.isin(land_use, símismo.agrl_uses), 1, 0)
                     nagrl_indexes = np.where(agrl_indexes, 0, 1)
-                    agrl_area = np.sum(agrl_indexes * símismo.área_de_tierra)
-                    change_index = []
-                    if agrl_area - var.var.obt_val() > 0:
-                        agrl_areas = [agrl_indexes[i] * [int(f) for f in símismo.área_de_tierra][i] for i in
-                                      range(len(agrl_indexes))]
-
-                        for i in range(len(agrl_areas)):
-                            #trying with changing only one hru
-                            if agrl_areas[i] > (agrl_area - var.var.obt_val())/2 and agrl_areas[i] < (agrl_area - var.var.obt_val())*1.5:
-                                change_index.append(i)
-                                break
-                            #trying with changing multiple hru's
-                            elif agrl_areas[i] < agrl_area - var.var.obt_val():
-                                change_index.append(i)
-                                agrl_area += agrl_areas[i]
+                    nagrl_areas = nagrl_indexes * símismo.área_de_tierra
+                    agrl_areas = agrl_indexes * símismo.área_de_tierra
+                    agrl_area = np.sum(agrl_areas)
+                    change_index = np.full(land_use.shape, False)
+                    diff = agrl_area - var.var.obt_val()
+                    matrix_to_change = agrl_areas if diff > 0 else nagrl_areas
+                    min_area = np.min(matrix_to_change)
+                    while diff > min_area:
+                        diff_hru = np.abs(matrix_to_change - diff)
+                        min_difference_index = np.argmin(diff_hru)
+                        diff -= matrix_to_change[min_difference_index]
+                        change_index[min_difference_index] = True
 
                     for i in change_index:
                         closest = 0
