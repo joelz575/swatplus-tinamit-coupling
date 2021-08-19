@@ -2,6 +2,10 @@ import os
 import shutil
 import socket
 import subprocess
+import tempfile
+import time
+from distutils.dir_util import copy_tree
+
 import numpy as np
 
 from tinamit.config import _
@@ -40,8 +44,8 @@ class ModeloSWATPlus(ModeloBF):
 
     def iniciar_modelo(símismo, corrida):
         if símismo.connectar:
-
-            símismo.direc_trabajo = shutil.copytree(símismo.archivo, '_' + str(hash(corrida)))
+            símismo.direc_trabajo = tempfile.mkdtemp('_' + str(hash(corrida)))
+            copy_tree(símismo.archivo, símismo.direc_trabajo)
 
             if corrida.t.f_inic is None:
                 raise ValueError('A start date is necessary when using SWAT+')
@@ -69,36 +73,38 @@ class ModeloSWATPlus(ModeloBF):
             # Mandar los valores nuevas a SWATPlus
             for var in rebanada.resultados:
                 print("var: " + str(var))
-                if (str(var) == 'agrl_km2'):
-                    símismo.deter_área()
-                    land_use = np.array(símismo.servidor.recibir(("luse")))
-                    agrl_indexes = np.where(np.isin(land_use, símismo.agrl_uses), 1, 0)
-                    nagrl_indexes = np.where(agrl_indexes, 0, 1)
-                    nagrl_areas = nagrl_indexes * símismo.área_de_tierra
-                    agrl_areas = agrl_indexes * símismo.área_de_tierra
-                    agrl_area = np.sum(agrl_areas)
-                    change_index = np.full(land_use.shape, False)
-                    diff = agrl_area - var.var.obt_val()
-                    matrix_to_change = agrl_areas if diff > 0 else nagrl_areas
-                    min_area = np.min(matrix_to_change[matrix_to_change > 0])
-                    while diff > min_area:
-                        diff_hru = np.abs(matrix_to_change - diff)
-                        min_difference_index = np.argmin(diff_hru[~change_index])
-                        diff -= matrix_to_change[min_difference_index]
-                        change_index[min_difference_index] = True
-                    choices, frq = np.unique(land_use[agrl_indexes if diff > 0 else nagrl_indexes], return_counts=True)
-                    choice = np.random.choice(choices, np.sum(change_index), p=frq/np.sum(frq))
-                    land_use[change_index] = choice
-                    símismo.servidor.cambiar('luse', land_use)
-                else:
-                    símismo.servidor.cambiar(str(var), var.var.obt_val())
+                if var.var.ingr:
+                    if (str(var) == 'agrl_km2'):
+                        símismo.deter_área()
+                        land_use = np.array(símismo.servidor.recibir(("luse")), dtype=int)
+                        agrl_indexes = np.where(np.isin(land_use, símismo.agrl_uses), 1, 0)
+                        nagrl_indexes = np.where(agrl_indexes, 0, 1)
+                        nagrl_areas = nagrl_indexes * símismo.área_de_tierra
+                        agrl_areas = agrl_indexes * símismo.área_de_tierra
+                        agrl_area = np.sum(agrl_areas)
+                        change_index = np.full(land_use.shape, False)
+                        diff = agrl_area - var.var.obt_val()
+                        matrix_to_change = agrl_areas if diff > 0 else nagrl_areas
+                        min_area = np.min(matrix_to_change[matrix_to_change > 0])
+                        while diff > min_area:
+                            diff_hru = np.abs(matrix_to_change - diff)
+                            min_difference_index = np.argmin(diff_hru[~change_index])
+                            diff -= matrix_to_change[min_difference_index]
+                            change_index[min_difference_index] = True
+                        choices, frq = np.unique(land_use[agrl_indexes if diff > 0 else nagrl_indexes], return_counts=True)
+                        choice = np.random.choice(choices, np.sum(change_index), p=frq/np.sum(frq))
+                        land_use[change_index] = choice
+                        símismo.servidor.cambiar('luse', land_use)
+                    else:
+                        símismo.servidor.cambiar(str(var), var.var.obt_val())
 
             # Correr un paso de simulaccion
             símismo.servidor.incrementar(rebanada.n_pasos)
-
             # Obtiene los valores de eso paso de la simulaccion
             for var in rebanada.resultados:
-                símismo.variables[str(var)].poner_val(símismo.servidor.recibir(var.var))
+                if var.var.egr:
+                    resultados = símismo.servidor.recibir(str(var))
+                    símismo.variables[str(var)].poner_val(resultados)
 
             super().incrementar(rebanada=rebanada)
             print("DONE INCREMENTAR")
@@ -107,18 +113,15 @@ class ModeloSWATPlus(ModeloBF):
         return True
 
     def deter_uso_de_tierra(símismo):
-        símismo.archivo_uso_de_tierra = open(símismo.archivo + '/landuse.lum', 'r')
-        símismo.uso_de_tierra = []
-        counter = 0
-        for line in símismo.archivo_uso_de_tierra:
-            if 1 < counter:
-                split_line = line.split(' ')
-                uso_de_tierra = split_line[0]
-                símismo.uso_de_tierra.append(uso_de_tierra)
-                print("Landuse: " + uso_de_tierra + "\tNumber: " + str(counter - 1))
-            counter += 1
-        símismo.archivo_uso_de_tierra.close()
-
+        with open(símismo.archivo + '/landuse.lum', 'r') as archivo_uso_de_tierra:
+            counter = 0
+            for line in archivo_uso_de_tierra:
+                if 1 < counter:
+                    split_line = line.split(' ')
+                    uso_de_tierra = split_line[0]
+                    print("Landuse: " + uso_de_tierra + "\tNumber: " + str(counter - 1))
+                counter += 1
+ #ToDo: fix the naming please :( AND THE open() statement
     def deter_área(símismo):
         símismo.archivo_uso_de_tierra = open(símismo.archivo + '/hru.con', 'r')
         símismo.área_de_tierra = []
@@ -138,10 +141,10 @@ class ModeloSWATPlus(ModeloBF):
 
     def cerrar(símismo):
         # close model
+        shutil.rmtree(símismo.direc_trabajo, ignore_errors=True)
         if símismo.connectar:
             símismo.servidor.cerrar()
             símismo.proc.kill()
-            shutil.rmtree(símismo.direc_trabajo, ignore_errors=True)
 
     def cambiar_vals(símismo, valores):
         super().cambiar_vals(valores)

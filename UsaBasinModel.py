@@ -14,7 +14,6 @@ vensim = ModeloPySD("vensim usa model.mdl")
 modelo = Conectado(swatPlus, vensim)
 
 modelo.conectar('Agricultural Land', 'agrl_km2', True)
-#modelo.conectar('"Non-Agricultural Land"', "nagrl_km2", True)
 swatPlus.deter_uso_de_tierra()
 swatPlus.add_luses([2,3,5,6,7,8,9,10,11])
 modelo.simular(EspecTiempo(10, '2006-1-1'))
