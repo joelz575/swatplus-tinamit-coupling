@@ -17,7 +17,7 @@ from _vars import gen_variables_swatp
 
 
 class ModeloSWATPlus(ModeloBF):
-    def __init__(símismo, archivo, nombre='SWATPlus', connectar=True):
+    def __init__(símismo, archivo, nombre='SWATPlus', connectar=True, hru=True, cha=True, lte_hru=False, sd_ch=False):
         # Buscar la ubicación del modelo SWATPlus.
         símismo.exe_SWATPlus = símismo.obt_conf(
             'exe',
@@ -29,13 +29,11 @@ class ModeloSWATPlus(ModeloBF):
                 '\nSi no instalaste SWATPlus, lo puedes conseguir para Linux, Mac o Windows de '
                 'https://github.com/joelz575/swatplus.'
             ))
-
         símismo.HUÉSPED = socket.gethostbyname(socket.gethostname())
         símismo.archivo = archivo
-        print(archivo)
-        símismo.variables = gen_variables_swatp()
-        variablesMod = VariablesMod(variables=símismo.variables)
         símismo.connectar = connectar
+        símismo.variables = gen_variables_swatp(símismo.archivo, símismo.obt_conf("exe"), hru, cha, lte_hru, sd_ch)
+        variablesMod = VariablesMod(variables=símismo.variables)
 
         if connectar:
             símismo.servidor = IDMEnchufes()

@@ -9,7 +9,7 @@ ModeloSWATPlus.estab_conf('exe', '/home/joelz/PycharmProjects/swatplus/build/bin
 #nueva_unidad(unid='year', ref='years', conv=1)
 agregar_sinónimos('año', "años", leng='es')
 agregar_trad('años', 'year', leng_trad='en', leng_orig='es')
-swatPlus = ModeloSWATPlus('Usa-Basin-Model')
+swatPlus = ModeloSWATPlus('Usa-Basin-Model', lte_hru=False, cha=False, sd_ch=True)
 vensim = ModeloPySD("vensim usa model.mdl")
 modelo = Conectado(swatPlus, vensim)
 
