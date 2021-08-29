@@ -17,7 +17,7 @@ _subscript_dict = {}
 _namespace = {
     "TIME": "time",
     "Time": "time",
-    "Water Ncontent": "water_ncontent",
+    "Runnoff into channels": "runnoff_into_channels",
     "FertilizerN Use per ha": "fertilizern_use_per_ha",
     '"Banana Yields (SWAT+)"': "banana_yields_swat",
     "Net Farmer Income": "net_farmer_income",
@@ -125,11 +125,11 @@ def time_step():
 
 
 @cache.run
-def water_ncontent():
+def runnoff_into_channels():
     """
-    Real Name: Water Ncontent
+    Real Name: Runnoff into channels
     Original Eqn: 0
-    Units: g/m3
+    Units: m^3
     Limits: (None, None)
     Type: constant
     Subs: None

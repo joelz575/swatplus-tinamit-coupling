@@ -13,7 +13,10 @@ swatPlus = ModeloSWATPlus('Usa-Basin-Model', lte_hru=False, cha=False, sd_ch=Tru
 vensim = ModeloPySD("vensim usa model.mdl")
 modelo = Conectado(swatPlus, vensim)
 
-modelo.conectar('Agricultural Land', 'agrl_km2', True)
+modelo.conectar('Agricultural Land', 'agrl_ha', True)
+modelo.conectar('"Banana Yields (SWAT+)"', '2_yield', False)
+modelo.conectar('"Corn Yields (SWAT+)"', '4_yield', False)
+modelo.conectar('Runnoff into channels', 'total_aqu_a%flo_cha', False)
 swatPlus.deter_uso_de_tierra()
 swatPlus.add_luses([2,3,5,6,7,8,9,10,11])
 modelo.simular(EspecTiempo(10, '2006-1-1'))

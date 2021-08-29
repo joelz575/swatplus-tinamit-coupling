@@ -3,11 +3,9 @@ import shutil
 import socket
 import subprocess
 import tempfile
-import time
-from distutils.dir_util import copy_tree
-
 import numpy as np
 
+from distutils.dir_util import copy_tree
 from tinamit.config import _
 from tinamit.envolt.bf import ModeloBF
 from tinamit.mod import VariablesMod
@@ -72,7 +70,7 @@ class ModeloSWATPlus(ModeloBF):
             for var in rebanada.resultados:
                 print("var: " + str(var))
                 if var.var.ingr:
-                    if (str(var) == 'agrl_km2'):
+                    if (str(var) == 'agrl_ha'):
                         símismo.deter_área()
                         land_use = np.array(símismo.servidor.recibir(("luse")), dtype=int)
                         agrl_indexes = np.where(np.isin(land_use, símismo.agrl_uses), 1, 0)
@@ -89,8 +87,9 @@ class ModeloSWATPlus(ModeloBF):
                             min_difference_index = np.argmin(diff_hru[~change_index])
                             diff -= matrix_to_change[min_difference_index]
                             change_index[min_difference_index] = True
-                        choices, frq = np.unique(land_use[agrl_indexes if diff > 0 else nagrl_indexes], return_counts=True)
-                        choice = np.random.choice(choices, np.sum(change_index), p=frq/np.sum(frq))
+                        choices, frq = np.unique(land_use[agrl_indexes if diff > 0 else nagrl_indexes],
+                                                 return_counts=True)
+                        choice = np.random.choice(choices, np.sum(change_index), p=frq / np.sum(frq))
                         land_use[change_index] = choice
                         símismo.servidor.cambiar('luse', land_use)
                     else:
@@ -100,8 +99,14 @@ class ModeloSWATPlus(ModeloBF):
             símismo.servidor.incrementar(rebanada.n_pasos)
             # Obtiene los valores de eso paso de la simulaccion
             for var in rebanada.resultados:
-                if var.var.egr:
+                if var.var.egr and str(var) not in ['2_yield', '4_yield', 'total_aqu_a%flo_cha']:
                     resultados = símismo.servidor.recibir(str(var))
+                    símismo.variables[str(var)].poner_val(resultados)
+                elif var.var.egr and str(var) in ['2_yield', '4_yield']:
+                    resultados = símismo.servidor.recibir('bsn_crop_yld_aa')[int(str(var)[0])-1]
+                    símismo.variables[str(var)].poner_val(resultados)
+                elif var.var.egr and str(var) == 'total_aqu_a%flo_cha':
+                    resultados = np.sum(np.array(símismo.servidor.recibir('aqu_a%flo_cha')))
                     símismo.variables[str(var)].poner_val(resultados)
 
             super().incrementar(rebanada=rebanada)
@@ -119,19 +124,17 @@ class ModeloSWATPlus(ModeloBF):
                     uso_de_tierra = split_line[0]
                     print("Landuse: " + uso_de_tierra + "\tNumber: " + str(counter - 1))
                 counter += 1
- #ToDo: fix the naming please :( AND THE open() statement
+
     def deter_área(símismo):
-        símismo.archivo_uso_de_tierra = open(símismo.archivo + '/hru.con', 'r')
-        símismo.área_de_tierra = []
-        counter = 0
-        for line in símismo.archivo_uso_de_tierra:
-            if 1 < counter:
-                split_line = line.split('    ')
-                area = split_line[6]
-                símismo.área_de_tierra.append(float(area))
-                print("Area: " + area + "\tHRU Number: " + str(counter))
-            counter += 1
-        símismo.archivo_uso_de_tierra.close()
+        with open(símismo.archivo + '/hru.con', 'r') as símismo.archivo_hru:
+            símismo.área_de_tierra = []
+            counter = 0
+            for line in símismo.archivo_hru:
+                if 1 < counter:
+                    split_line = line.split('    ')
+                    area = split_line[6]
+                    símismo.área_de_tierra.append(float(area))
+                counter += 1
 
     def add_luses(símismo, uses: [], classification='AGRL'):
         if classification == 'AGRL':

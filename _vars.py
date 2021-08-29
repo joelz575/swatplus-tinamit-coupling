@@ -1,11 +1,11 @@
 import shutil
 import subprocess
 import tempfile
-from tinamit_idm.puertos import IDMEnchufes
 from distutils.dir_util import copy_tree
-import numpy as np
 
+import numpy as np
 from tinamit.mod import Variable
+from tinamit_idm.puertos import IDMEnchufes
 
 
 def gen_variables_swatp(archivo, exe, hru, cha, lte_hru, sd_ch) -> [Variable]:
@@ -19,12 +19,13 @@ def gen_variables_swatp(archivo, exe, hru, cha, lte_hru, sd_ch) -> [Variable]:
     )
     servidor.activar()
     for vr, info in _info_vars.items():
-        if (vr != 'agrl_km2' and ((info['type'] == 'hru' and hru) or (info['type'] == 'cha' and cha) or
-                                     (info['type'] == 'lte_hru' and lte_hru) or (info['type'] == 'sd_ch' and sd_ch))):
+        if ((vr != 'agrl_ha' and vr != '2_yield' and vr != '4_yield' and vr != 'total_aqu_a%flo_cha') and
+                ((info['type'] == 'hru' and hru) or (info['type'] == 'cha' and cha) or
+                                  (info['type'] == 'lte_hru' and lte_hru) or (info['type'] == 'sd_ch' and sd_ch))):
             variables.append(Variable(
                 nombre=vr, unid=info['unid'], ingr=info['ingr'], egr=info['egr'], inic=np.array(servidor.recibir(vr))
             ))
-        elif (hru and vr == 'agrl_km2'):
+        elif (hru and (vr == 'agrl_ha' or vr == '2_yield' or vr == '4_yield' or vr == 'total_aqu_a%flo_cha')):
             variables.append(Variable(
                 nombre=vr, unid=info['unid'], ingr=info['ingr'], egr=info['egr']))
 
@@ -36,8 +37,23 @@ def gen_variables_swatp(archivo, exe, hru, cha, lte_hru, sd_ch) -> [Variable]:
 
 # Un diccionario de variables SWAT+. Ver la documentación SWAT+ para más detalles.
 _info_vars = {
-    'agrl_km2':
-        {'nombre': 'Area of Agricultural Land', 'unid': 'km^2', 'ingr': True,
+    '2_yield':
+        {'nombre': 'yield of plant 2 (banana in this example)', 'unid': 'tonne/ha', 'ingr': False,
+         'egr': True, 'type': 'None'},
+    '4_yield':
+        {'nombre': 'yield of plant 4 (corn in this example)', 'unid': 'tonne/ha', 'ingr': False,
+         'egr': True, 'type': 'None'},
+    'bsn_crop_yld_aa':
+        {'nombre': 'sum of yields by plants', 'unid': 'tonne/ha', 'ingr': False,
+         'egr': True, 'type': 'hru'},
+    'aqu_a%flo_cha':
+        {'nombre': 'surface runoff flowing into channels', 'unid': 'm^3', 'ingr': False,
+         'egr': True, 'type': 'hru'},
+    'total_aqu_a%flo_cha':
+        {'nombre': 'sum of surface runoff flowing into channels', 'unid': 'm^3', 'ingr': False,
+         'egr': True, 'type': 'hru'},
+    'agrl_ha':
+        {'nombre': 'Area of Agricultural Land', 'unid': 'ha', 'ingr': True,
          'egr': False, 'type': 'None'},
     'sd_props':
         {'nombre': 'Name Not Available', 'unid': '', 'ingr': False,
@@ -337,7 +353,7 @@ _info_vars = {
     "hru_lumv%usle_p":
         {'nombre': 'Name Not Available', 'unid': '', 'ingr': False,
          'egr': True, 'type': 'hru'},
-    #"hru_lumv%usle_ls":
+    # "hru_lumv%usle_ls":
     #    {'nombre': 'Name Not Available', 'unid': '', 'ingr': False,
     #     'egr': True, 'type': 'hru'},
     "hru_lumv%usle_mult":
@@ -436,7 +452,7 @@ _info_vars = {
     "hru_ich_flood":
         {'nombre': 'Name Not Available', 'unid': '', 'ingr': False,
          'egr': True, 'type': 'hru'},
-    #"hru_cn_luse":
+    # "hru_cn_luse":
     #    {'nombre': "curve number of HRU based on landuse", 'unid': '', 'ingr': False,
     #     'egr': True, 'type': 'hru'},
     "luse":
