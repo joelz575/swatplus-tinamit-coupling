@@ -5,7 +5,7 @@ Translated using PySD
 
 import numpy as np
 
-from pysd.py_backend.functions import lookup, Integ
+from pysd.py_backend.functions import Integ, lookup
 from pysd import cache
 
 __pysd_version__ = "1.9.1"
@@ -17,10 +17,12 @@ _subscript_dict = {}
 _namespace = {
     "TIME": "time",
     "Time": "time",
+    '"Banana Cultivation Area (SWAT+)"': "banana_cultivation_area_swat",
+    '"Corn Cultivation Area (SWAT+)"': "corn_cultivation_area_swat",
+    "Net Farmer Income": "net_farmer_income",
     "Runnoff into channels": "runnoff_into_channels",
     "FertilizerN Use per ha": "fertilizern_use_per_ha",
     '"Banana Yields (SWAT+)"': "banana_yields_swat",
-    "Net Farmer Income": "net_farmer_income",
     "Corn Selling Price Lookup": "corn_selling_price_lookup",
     "Agricultural Land": "agricultural_land",
     '"Corn Yields (SWAT+)"': "corn_yields_swat",
@@ -125,11 +127,64 @@ def time_step():
 
 
 @cache.run
+def banana_cultivation_area_swat():
+    """
+    Real Name: "Banana Cultivation Area (SWAT+)"
+    Original Eqn: 9000
+    Units: ha
+    Limits: (None, None)
+    Type: constant
+    Subs: None
+
+
+    """
+    return 9000
+
+
+@cache.run
+def corn_cultivation_area_swat():
+    """
+    Real Name: "Corn Cultivation Area (SWAT+)"
+    Original Eqn: 9000
+    Units: ha
+    Limits: (None, None)
+    Type: constant
+    Subs: None
+
+
+    """
+    return 9000
+
+
+@cache.step
+def net_farmer_income():
+    """
+    Real Name: Net Farmer Income
+    Original Eqn: "Corn Yields (SWAT+)"/"Corn Cultivation Area (SWAT+)"*Corn Selling Price Lookup(2008)+"Banana Yields (SWAT+)"/"Banana Cultivation Area (SWAT+)"*Banana Selling Price Lookup(2008)-Production Cost
+    Units: $/ha
+    Limits: (None, None)
+    Type: component
+    Subs: None
+
+
+    """
+    return (
+        corn_yields_swat()
+        / corn_cultivation_area_swat()
+        * corn_selling_price_lookup(2008)
+        + banana_yields_swat()
+        / banana_cultivation_area_swat()
+        * banana_selling_price_lookup(2008)
+        - production_cost()
+    )
+
+
+@cache.run
 def runnoff_into_channels():
     """
     Real Name: Runnoff into channels
     Original Eqn: 0
-    Units: m^3
+    Units: m*m*m
     Limits: (None, None)
     Type: constant
     Subs: None
@@ -159,7 +214,7 @@ def banana_yields_swat():
     """
     Real Name: "Banana Yields (SWAT+)"
     Original Eqn: 10
-    Units:
+    Units: tonne
     Limits: (None, None)
     Type: constant
     Subs: None
@@ -167,25 +222,6 @@ def banana_yields_swat():
 
     """
     return 10
-
-
-@cache.step
-def net_farmer_income():
-    """
-    Real Name: Net Farmer Income
-    Original Eqn: "Corn Yields (SWAT+)"*Corn Selling Price Lookup(2008)+"Banana Yields (SWAT+)"*Banana Selling Price Lookup(2008)-Production Cost
-    Units: $/ha
-    Limits: (None, None)
-    Type: component
-    Subs: None
-
-
-    """
-    return (
-        corn_yields_swat() * corn_selling_price_lookup(2008)
-        + banana_yields_swat() * banana_selling_price_lookup(2008)
-        - production_cost()
-    )
 
 
 def corn_selling_price_lookup(x):
@@ -210,7 +246,7 @@ def corn_selling_price_lookup(x):
 def agricultural_land():
     """
     Real Name: Agricultural Land
-    Original Eqn: INTEG ( Cultivation Rate, 8709.46)
+    Original Eqn: INTEG ( Cultivation Rate, 11583)
     Units: ha
     Limits: (None, None)
     Type: component
@@ -226,7 +262,7 @@ def corn_yields_swat():
     """
     Real Name: "Corn Yields (SWAT+)"
     Original Eqn: 1.3
-    Units: tonne/ha
+    Units: tonne
     Limits: (None, None)
     Type: constant
     Subs: None
@@ -283,7 +319,7 @@ def desired_agricultural_land():
 def fertigation_policy():
     """
     Real Name: Fertigation Policy
-    Original Eqn: 0
+    Original Eqn: 1
     Units:
     Limits: (0.0, 1.0, 1.0)
     Type: constant
@@ -291,7 +327,7 @@ def fertigation_policy():
 
 
     """
-    return 0
+    return 1
 
 
 @cache.step
@@ -398,7 +434,7 @@ def reference_profit():
 def nonagricultural_land():
     """
     Real Name: "Non-Agricultural Land"
-    Original Eqn: INTEG ( -Cultivation Rate, 14509.4)
+    Original Eqn: INTEG ( -Cultivation Rate, 11636)
     Units:
     Limits: (None, None)
     Type: component
@@ -501,10 +537,10 @@ def base_cost():
 
 
 _integ_agricultural_land = Integ(
-    lambda: cultivation_rate(), lambda: 8709.46, "_integ_agricultural_land"
+    lambda: cultivation_rate(), lambda: 11583, "_integ_agricultural_land"
 )
 
 
 _integ_nonagricultural_land = Integ(
-    lambda: -cultivation_rate(), lambda: 14509.4, "_integ_nonagricultural_land"
+    lambda: -cultivation_rate(), lambda: 11636, "_integ_nonagricultural_land"
 )

@@ -19,7 +19,8 @@ def gen_variables_swatp(archivo, exe, hru, cha, lte_hru, sd_ch) -> [Variable]:
     )
     servidor.activar()
     for vr, info in _info_vars.items():
-        if ((vr != 'agrl_ha' and vr != '2_yield' and vr != '4_yield' and vr != 'total_aqu_a%flo_cha') and
+        if ((vr != 'agrl_ha' and vr != '2_yield' and vr != '4_yield' and vr != 'total_aqu_a%flo_cha' and
+             vr != 'banana_land_use_area' and vr != 'corn_land_use_area') and
                 ((info['type'] == 'hru' and hru) or (info['type'] == 'cha' and cha) or
                                   (info['type'] == 'lte_hru' and lte_hru) or (info['type'] == 'sd_ch' and sd_ch))):
             variables.append(Variable(
@@ -28,6 +29,10 @@ def gen_variables_swatp(archivo, exe, hru, cha, lte_hru, sd_ch) -> [Variable]:
         elif (hru and (vr == 'agrl_ha' or vr == '2_yield' or vr == '4_yield' or vr == 'total_aqu_a%flo_cha')):
             variables.append(Variable(
                 nombre=vr, unid=info['unid'], ingr=info['ingr'], egr=info['egr']))
+        elif(hru and (vr == 'banana_land_use_area' or vr == 'corn_land_use_area')):
+            variables.append(Variable(
+                nombre=vr, unid=info['unid'], ingr=info['ingr'], egr=info['egr'], inic=4000
+            ))
 
     servidor.cerrar()
     proc.kill()
@@ -37,14 +42,20 @@ def gen_variables_swatp(archivo, exe, hru, cha, lte_hru, sd_ch) -> [Variable]:
 
 # Un diccionario de variables SWAT+. Ver la documentación SWAT+ para más detalles.
 _info_vars = {
+    'banana_land_use_area':
+        {'nombre': 'banana land use area', 'unid': 'ha', 'ingr': False,
+         'egr': True, 'type': 'hru'},
+    'corn_land_use_area':
+        {'nombre': 'corn land use area', 'unid': 'ha', 'ingr': False,
+         'egr': True, 'type': 'hru'},
     '2_yield':
-        {'nombre': 'yield of plant 2 (banana in this example)', 'unid': 'tonne/ha', 'ingr': False,
+        {'nombre': 'yield of plant 2 (banana in this example)', 'unid': 'tonne', 'ingr': False,
          'egr': True, 'type': 'None'},
     '4_yield':
-        {'nombre': 'yield of plant 4 (corn in this example)', 'unid': 'tonne/ha', 'ingr': False,
+        {'nombre': 'yield of plant 4 (corn in this example)', 'unid': 'tonne', 'ingr': False,
          'egr': True, 'type': 'None'},
-    'bsn_crop_yld_aa':
-        {'nombre': 'sum of yields by plants', 'unid': 'tonne/ha', 'ingr': False,
+    'bsn_crop_yld':
+        {'nombre': 'sum of yields by plants', 'unid': 'tonne', 'ingr': False,
          'egr': True, 'type': 'hru'},
     'aqu_a%flo_cha':
         {'nombre': 'surface runoff flowing into channels', 'unid': 'm^3', 'ingr': False,

@@ -99,14 +99,20 @@ class ModeloSWATPlus(ModeloBF):
             símismo.servidor.incrementar(rebanada.n_pasos)
             # Obtiene los valores de eso paso de la simulaccion
             for var in rebanada.resultados:
-                if var.var.egr and str(var) not in ['2_yield', '4_yield', 'total_aqu_a%flo_cha']:
+                if var.var.egr and str(var) not in ['2_yield', '4_yield', 'total_aqu_a%flo_cha', 'banana_land_use_area', 'corn_land_use_area']:
                     resultados = símismo.servidor.recibir(str(var))
                     símismo.variables[str(var)].poner_val(resultados)
                 elif var.var.egr and str(var) in ['2_yield', '4_yield']:
-                    resultados = símismo.servidor.recibir('bsn_crop_yld_aa')[int(str(var)[0])-1]
+                    resultados = símismo.servidor.recibir('bsn_crop_yld')[int(str(var)[0])-1]
                     símismo.variables[str(var)].poner_val(resultados)
                 elif var.var.egr and str(var) == 'total_aqu_a%flo_cha':
                     resultados = np.sum(np.array(símismo.servidor.recibir('aqu_a%flo_cha')))
+                    símismo.variables[str(var)].poner_val(resultados)
+                elif var.var.egr and str(var) == 'banana_land_use_area':
+                    resultados = np.sum(símismo.área_de_tierra * np.where(np.isin(land_use, [2, 3]), 1, 0))
+                    símismo.variables[str(var)].poner_val(resultados)
+                elif var.var.egr and str(var) == 'corn_land_use_area':
+                    resultados = np.sum(símismo.área_de_tierra * np.where(np.isin(land_use, [3, 7, 8]), 1, 0))
                     símismo.variables[str(var)].poner_val(resultados)
 
             super().incrementar(rebanada=rebanada)
