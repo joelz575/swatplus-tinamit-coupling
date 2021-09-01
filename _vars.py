@@ -26,10 +26,10 @@ def gen_variables_swatp(archivo, exe, hru, cha, lte_hru, sd_ch) -> [Variable]:
             variables.append(Variable(
                 nombre=vr, unid=info['unid'], ingr=info['ingr'], egr=info['egr'], inic=np.array(servidor.recibir(vr))
             ))
-        elif (hru and (vr == 'agrl_ha' or vr == '2_yield' or vr == '4_yield' or vr == 'total_aqu_a%flo_cha')):
+        elif (hru and (vr == 'agrl_ha')):
             variables.append(Variable(
                 nombre=vr, unid=info['unid'], ingr=info['ingr'], egr=info['egr']))
-        elif(hru and (vr == 'banana_land_use_area' or vr == 'corn_land_use_area')):
+        elif(hru and (vr == 'banana_land_use_area' or vr == 'corn_land_use_area' or vr == '2_yield' or vr == '4_yield')):
             variables.append(Variable(
                 nombre=vr, unid=info['unid'], ingr=info['ingr'], egr=info['egr'], inic=4000
             ))
@@ -54,14 +54,14 @@ _info_vars = {
     '4_yield':
         {'nombre': 'yield of plant 4 (corn in this example)', 'unid': 'tonne', 'ingr': False,
          'egr': True, 'type': 'None'},
+    'total_ch_out_y%flo':
+        {'nombre': 'total yearly water outflow from channels in basin', 'unid': 'm^3', 'ingr': False,
+         'egr': True, 'type': 'sd_ch'},
+    'total_ch_out_y%no3':
+        {'nombre': 'mass of NO3-N flowing out of basin in a year', 'unid': 'kg', 'ingr': False,
+         'egr': True, 'type': 'sd_ch'},
     'bsn_crop_yld':
         {'nombre': 'sum of yields by plants', 'unid': 'tonne', 'ingr': False,
-         'egr': True, 'type': 'hru'},
-    'aqu_a%flo_cha':
-        {'nombre': 'surface runoff flowing into channels', 'unid': 'm^3', 'ingr': False,
-         'egr': True, 'type': 'hru'},
-    'total_aqu_a%flo_cha':
-        {'nombre': 'sum of surface runoff flowing into channels', 'unid': 'm^3', 'ingr': False,
          'egr': True, 'type': 'hru'},
     'agrl_ha':
         {'nombre': 'Area of Agricultural Land', 'unid': 'ha', 'ingr': True,

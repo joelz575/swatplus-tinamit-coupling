@@ -53,7 +53,7 @@ class ModeloSWATPlus(ModeloBF):
                 cwd=símismo.direc_trabajo
             )
             símismo.servidor.activar()
-
+            símismo.deter_área()
         else:
             símismo.direc_trabajo = shutil.copytree(símismo.archivo, '_' + str(hash(corrida)))
             símismo.proc = subprocess.Popen(
@@ -71,10 +71,9 @@ class ModeloSWATPlus(ModeloBF):
                 print("var: " + str(var))
                 if var.var.ingr:
                     if (str(var) == 'agrl_ha'):
-                        símismo.deter_área()
                         land_use = np.array(símismo.servidor.recibir(("luse")), dtype=int)
                         agrl_indexes = np.where(np.isin(land_use, símismo.agrl_uses), 1, 0)
-                        nagrl_indexes = np.where(agrl_indexes, 0, 1)
+                        nagrl_indexes = np.where(agrl_indexes == 1, 0, 1)
                         nagrl_areas = nagrl_indexes * símismo.área_de_tierra
                         agrl_areas = agrl_indexes * símismo.área_de_tierra
                         agrl_area = np.sum(agrl_areas)
@@ -82,12 +81,15 @@ class ModeloSWATPlus(ModeloBF):
                         diff = agrl_area - var.var.obt_val()
                         matrix_to_change = agrl_areas if diff > 0 else nagrl_areas
                         min_area = np.min(matrix_to_change[matrix_to_change > 0])
-                        while diff > min_area:
-                            diff_hru = np.abs(matrix_to_change - diff)
-                            min_difference_index = np.argmin(diff_hru[~change_index])
-                            diff -= matrix_to_change[min_difference_index]
-                            change_index[min_difference_index] = True
-                        choices, frq = np.unique(land_use[agrl_indexes if diff > 0 else nagrl_indexes],
+                        abs_diff = abs(diff)
+                        while abs_diff > min_area:
+                            diff_hru = np.abs(matrix_to_change - abs_diff)
+                            min_difference_index = np.argmin(diff_hru)
+                            abs_diff -= matrix_to_change[min_difference_index]
+                            if change_index[min_difference_index] == False:
+                                change_index[min_difference_index] = True
+                            else: break
+                        choices, frq = np.unique(land_use[nagrl_indexes == 1 if diff > 0 else agrl_indexes == 1],
                                                  return_counts=True)
                         choice = np.random.choice(choices, np.sum(change_index), p=frq / np.sum(frq))
                         land_use[change_index] = choice
@@ -99,14 +101,12 @@ class ModeloSWATPlus(ModeloBF):
             símismo.servidor.incrementar(rebanada.n_pasos)
             # Obtiene los valores de eso paso de la simulaccion
             for var in rebanada.resultados:
-                if var.var.egr and str(var) not in ['2_yield', '4_yield', 'total_aqu_a%flo_cha', 'banana_land_use_area', 'corn_land_use_area']:
+                if var.var.egr and str(var) not in ['2_yield', '4_yield', 'total_aqu_a%flo_cha', 'banana_land_use_area',
+                                                    'corn_land_use_area']:
                     resultados = símismo.servidor.recibir(str(var))
                     símismo.variables[str(var)].poner_val(resultados)
                 elif var.var.egr and str(var) in ['2_yield', '4_yield']:
                     resultados = símismo.servidor.recibir('bsn_crop_yld')[int(str(var)[0])-1]
-                    símismo.variables[str(var)].poner_val(resultados)
-                elif var.var.egr and str(var) == 'total_aqu_a%flo_cha':
-                    resultados = np.sum(np.array(símismo.servidor.recibir('aqu_a%flo_cha')))
                     símismo.variables[str(var)].poner_val(resultados)
                 elif var.var.egr and str(var) == 'banana_land_use_area':
                     resultados = np.sum(símismo.área_de_tierra * np.where(np.isin(land_use, [2, 3]), 1, 0))

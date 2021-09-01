@@ -17,15 +17,15 @@ _subscript_dict = {}
 _namespace = {
     "TIME": "time",
     "Time": "time",
+    '"Banana Yields (SWAT+)"': "banana_yields_swat",
     '"Banana Cultivation Area (SWAT+)"': "banana_cultivation_area_swat",
     '"Corn Cultivation Area (SWAT+)"': "corn_cultivation_area_swat",
     "Net Farmer Income": "net_farmer_income",
+    '"Corn Yields (SWAT+)"': "corn_yields_swat",
     "Runnoff into channels": "runnoff_into_channels",
     "FertilizerN Use per ha": "fertilizern_use_per_ha",
-    '"Banana Yields (SWAT+)"': "banana_yields_swat",
     "Corn Selling Price Lookup": "corn_selling_price_lookup",
     "Agricultural Land": "agricultural_land",
-    '"Corn Yields (SWAT+)"': "corn_yields_swat",
     "Cultivation Rate": "cultivation_rate",
     "Desired Agricultural Land": "desired_agricultural_land",
     "Fertigation Policy": "fertigation_policy",
@@ -127,10 +127,25 @@ def time_step():
 
 
 @cache.run
+def banana_yields_swat():
+    """
+    Real Name: "Banana Yields (SWAT+)"
+    Original Eqn: 6000
+    Units: tonne
+    Limits: (None, None)
+    Type: constant
+    Subs: None
+
+
+    """
+    return 6000
+
+
+@cache.run
 def banana_cultivation_area_swat():
     """
     Real Name: "Banana Cultivation Area (SWAT+)"
-    Original Eqn: 9000
+    Original Eqn: 5000
     Units: ha
     Limits: (None, None)
     Type: constant
@@ -138,14 +153,14 @@ def banana_cultivation_area_swat():
 
 
     """
-    return 9000
+    return 5000
 
 
 @cache.run
 def corn_cultivation_area_swat():
     """
     Real Name: "Corn Cultivation Area (SWAT+)"
-    Original Eqn: 9000
+    Original Eqn: 5000
     Units: ha
     Limits: (None, None)
     Type: constant
@@ -153,7 +168,7 @@ def corn_cultivation_area_swat():
 
 
     """
-    return 9000
+    return 5000
 
 
 @cache.step
@@ -180,6 +195,21 @@ def net_farmer_income():
 
 
 @cache.run
+def corn_yields_swat():
+    """
+    Real Name: "Corn Yields (SWAT+)"
+    Original Eqn: 6000
+    Units: tonne
+    Limits: (None, None)
+    Type: constant
+    Subs: None
+
+
+    """
+    return 6000
+
+
+@cache.run
 def runnoff_into_channels():
     """
     Real Name: Runnoff into channels
@@ -198,7 +228,7 @@ def runnoff_into_channels():
 def fertilizern_use_per_ha():
     """
     Real Name: FertilizerN Use per ha
-    Original Eqn: FertilizerN Requirement per ha*(1-(0.1*Fertigation Policy))
+    Original Eqn: FertilizerN Requirement per ha*(1-(0.7*Fertigation Policy))
     Units:
     Limits: (None, None)
     Type: component
@@ -206,22 +236,7 @@ def fertilizern_use_per_ha():
 
 
     """
-    return fertilizern_requirement_per_ha() * (1 - (0.1 * fertigation_policy()))
-
-
-@cache.run
-def banana_yields_swat():
-    """
-    Real Name: "Banana Yields (SWAT+)"
-    Original Eqn: 10
-    Units: tonne
-    Limits: (None, None)
-    Type: constant
-    Subs: None
-
-
-    """
-    return 10
+    return fertilizern_requirement_per_ha() * (1 - (0.7 * fertigation_policy()))
 
 
 def corn_selling_price_lookup(x):
@@ -255,21 +270,6 @@ def agricultural_land():
 
     """
     return _integ_agricultural_land()
-
-
-@cache.run
-def corn_yields_swat():
-    """
-    Real Name: "Corn Yields (SWAT+)"
-    Original Eqn: 1.3
-    Units: tonne
-    Limits: (None, None)
-    Type: constant
-    Subs: None
-
-
-    """
-    return 1.3
 
 
 @cache.step
@@ -404,7 +404,7 @@ def total_fertlizern_use():
 def max_land_per_person():
     """
     Real Name: Max Land per Person
-    Original Eqn: 22.75
+    Original Eqn: 110
     Units: ha
     Limits: (None, None)
     Type: constant
@@ -412,14 +412,14 @@ def max_land_per_person():
 
 
     """
-    return 22.75
+    return 110
 
 
 @cache.run
 def reference_profit():
     """
     Real Name: Reference Profit
-    Original Eqn: 750
+    Original Eqn: 1350
     Units: $/ha/year
     Limits: (None, None)
     Type: constant
@@ -427,7 +427,7 @@ def reference_profit():
 
 
     """
-    return 750
+    return 1350
 
 
 @cache.step
@@ -464,7 +464,7 @@ def production_cost():
 def population():
     """
     Real Name: Population
-    Original Eqn: 1000
+    Original Eqn: 20000
     Units: people
     Limits: (None, None)
     Type: constant
@@ -472,14 +472,14 @@ def population():
 
 
     """
-    return 1000
+    return 20000
 
 
 @cache.run
 def fertilizern_cost():
     """
     Real Name: FertilizerN Cost
-    Original Eqn: 10
+    Original Eqn: 20
     Units: $/kg
     Limits: (None, None)
     Type: constant
@@ -487,14 +487,14 @@ def fertilizern_cost():
 
 
     """
-    return 10
+    return 20
 
 
 @cache.run
 def fertilizern_requirement_per_ha():
     """
     Real Name: FertilizerN Requirement per ha
-    Original Eqn: 281.3
+    Original Eqn: 70
     Units:
     Limits: (None, None)
     Type: constant
@@ -502,7 +502,7 @@ def fertilizern_requirement_per_ha():
 
 
     """
-    return 281.3
+    return 70
 
 
 def banana_selling_price_lookup(x):
@@ -525,7 +525,7 @@ def banana_selling_price_lookup(x):
 def base_cost():
     """
     Real Name: Base Cost
-    Original Eqn: 120
+    Original Eqn: 200
     Units: $/ha
     Limits: (None, None)
     Type: constant
@@ -533,7 +533,7 @@ def base_cost():
 
 
     """
-    return 120
+    return 200
 
 
 _integ_agricultural_land = Integ(
