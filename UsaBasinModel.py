@@ -7,11 +7,13 @@ from tinamit.unids import agregar_trad, nueva_unidad, agregar_sinónimos
 from SWATWrapper import ModeloSWATPlus
 
 ModeloSWATPlus.estab_conf('exe', '/home/joelz/PycharmProjects/swatplus/build/bin/swatplus_exe')
-#nueva_unidad(unid='year', ref='years', conv=1)
 agregar_sinónimos('año', "años", leng='es')
 agregar_trad('años', 'year', leng_trad='en', leng_orig='es')
 swatPlus = ModeloSWATPlus('Usa_Basin_model', lte_hru=False, cha=False, sd_ch=True)
+swatPlus.deter_uso_de_tierra()
+swatPlus.add_luses([2, 3, 7, 8, 9])
 vensim = ModeloPySD("vensim usa model.mdl")
+
 modelo = Conectado(swatPlus, vensim)
 
 modelo.conectar('Agricultural Land', 'agrl_ha', True)
@@ -20,8 +22,6 @@ modelo.conectar('"Corn Yields (SWAT+)"', '4_yield', False)
 modelo.conectar('Runnoff into channels', 'total_ch_out_y%flo', False)
 modelo.conectar('"Banana Cultivation Area (SWAT+)"', 'banana_land_use_area', False)
 modelo.conectar('"Corn Cultivation Area (SWAT+)"', 'corn_land_use_area', False)
-swatPlus.deter_uso_de_tierra()
-swatPlus.add_luses([2,3,7,8,9])
 
 res_conex =modelo.simular(EspecTiempo(10, '2006-1-1'))
 
