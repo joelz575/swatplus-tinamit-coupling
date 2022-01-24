@@ -142,7 +142,7 @@ class ModeloSWATPlus(ModeloBF):
                     símismo.área_de_tierra.append(float(area))
                 counter += 1
 
-    def add_luses(símismo, uses: [], classification='AGRL'):
+    def agrupar_usos_del_suelo(símismo, uses: [], classification='AGRL'):
         if classification == 'AGRL':
             símismo.agrl_uses = uses
 
