@@ -21,7 +21,7 @@ modelo.conectar('Runnoff into channels', 'total_ch_out_y%flo', False)
 modelo.conectar('"Banana Cultivation Area (SWAT+)"', 'banana_land_use_area', False)
 modelo.conectar('"Corn Cultivation Area (SWAT+)"', 'corn_land_use_area', False)
 swatPlus.deter_uso_de_tierra()
-swatPlus.add_luses([2,3,7,8,9])
+swatPlus.agrupar_usos_del_suelo([2,3,7,8,9])
 
 res_conex =modelo.simular(EspecTiempo(10, '2006-1-1'))
 
