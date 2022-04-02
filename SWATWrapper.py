@@ -6,7 +6,7 @@ import tempfile
 import numpy as np
 
 from distutils.dir_util import copy_tree
-from tinamit.config import _
+from tinamit.config import _ as ERR
 from tinamit.envolt.bf import ModeloBF
 from tinamit.mod import VariablesMod
 from tinamit_idm.puertos import IDMEnchufes
@@ -16,27 +16,38 @@ from _vars import gen_variables_swatp
 
 class ModeloSWATPlus(ModeloBF):
     def __init__(símismo, archivo, nombre='SWATPlus', connectar=True, hru=True, cha=True, lte_hru=False, sd_ch=False):
-        # Buscar la ubicación del modelo SWATPlus.
+        # EN:   Initializing wrapper variables
+        # ES:   Inicialización de variables contenedoras
+        símismo.archivo = archivo
+        símismo.proc = None
+        símismo.hru_areas = None
+        símismo.direc_trabajo = None
+
+        # EN:   Confirming that the location of the SWAT+ executable has been specified
+        # ES:   Confirmar la ubicación del modelo SWAT+
         símismo.exe_SWATPlus = símismo.obt_conf(
             'exe',
             cond=os.path.isfile,
-            mnsj_err=_(
+            mnsj_err=ERR(
                 '\nDebes especificar la ubicación del ejecutable SWATPlus, p. ej.'
                 '\n\tModeloSWATPlus.estab_conf("exe", "C:\\Camino\\hacia\\mi\\SWATPlus.exe")'
                 '\npara poder hacer simulaciones con modelos SWATPlus.'
                 '\nSi no instalaste SWATPlus, lo puedes conseguir para Linux, Mac o Windows de '
                 'https://github.com/joelz575/swatplus.'
             ))
-        símismo.HUÉSPED = socket.gethostbyname(socket.gethostname())
-        símismo.archivo = archivo
-        símismo.connectar = connectar
-        símismo.variables = gen_variables_swatp(símismo.archivo, símismo.obt_conf("exe"), hru, cha, lte_hru, sd_ch)
-        variablesMod = VariablesMod(variables=símismo.variables)
 
+        # EN:   Initializing variables necessary for coupling
+        # ES:   Inicialización de variables necesarias para el acoplamiento
+        símismo.HUÉSPED = socket.gethostbyname(socket.gethostname())
+        símismo.connectar = connectar
         if connectar:
             símismo.servidor = IDMEnchufes()
 
-        super().__init__(nombre=nombre, variables=variablesMod)
+        # EN:   Getting the initial values of SWAT+ model variables and passing them to the superclass constructor
+        # ES:   Obtener los valores iniciales de las variables del modelo SWAT+ y pasarlos al constructor de superclase
+        símismo.variables = gen_variables_swatp(símismo.archivo, símismo.obt_conf("exe"), hru, cha, lte_hru, sd_ch)
+        model_variables = VariablesMod(variables=símismo.variables)
+        super().__init__(nombre=nombre, variables=model_variables)
 
     def iniciar_modelo(símismo, corrida):
         if símismo.connectar:
@@ -47,13 +58,20 @@ class ModeloSWATPlus(ModeloBF):
                 raise ValueError('A start date is necessary when using SWAT+')
             super().iniciar_modelo(corrida=corrida)
 
-            # iniciate SWATPlus Model
+            # EN:   Starting the SWAT+ model
+            # ES:   Inicio del modelo SWAT+
             símismo.proc = subprocess.Popen(
                 [símismo.obt_conf('exe'), str(símismo.servidor.puerto), símismo.servidor.dirección],
                 cwd=símismo.direc_trabajo
             )
             símismo.servidor.activar()
-            símismo.deter_área()
+
+            # EN:   More variable inicialization
+            # ES:   Mas de inicialización de variables
+            símismo.get_hru_areas()
+
+        # EN:   Without connection
+        # ES:   Sin acoplamiento
         else:
             símismo.direc_trabajo = shutil.copytree(símismo.archivo, '_' + str(hash(corrida)))
             símismo.proc = subprocess.Popen(
@@ -66,7 +84,8 @@ class ModeloSWATPlus(ModeloBF):
 
     def incrementar(símismo, rebanada):
         if símismo.connectar:
-            # Mandar los valores nuevas a SWATPlus
+            # EN:   Getting the newest values from SWAT+
+            # ES:   Mandar los valores nuevas a SWAT+
             for var in rebanada.resultados:
                 print("var: " + str(var))
                 if var.var.ingr:
@@ -74,8 +93,8 @@ class ModeloSWATPlus(ModeloBF):
                         land_use = np.array(símismo.servidor.recibir(("luse")), dtype=int)
                         agrl_indexes = np.where(np.isin(land_use, símismo.agrl_uses), 1, 0)
                         nagrl_indexes = np.where(agrl_indexes == 1, 0, 1)
-                        nagrl_areas = nagrl_indexes * símismo.área_de_tierra
-                        agrl_areas = agrl_indexes * símismo.área_de_tierra
+                        nagrl_areas = nagrl_indexes * símismo.hru_areas
+                        agrl_areas = agrl_indexes * símismo.hru_areas
                         agrl_area = np.sum(agrl_areas)
                         change_index = np.full(land_use.shape, False)
                         diff = agrl_area - var.var.obt_val()
@@ -86,9 +105,10 @@ class ModeloSWATPlus(ModeloBF):
                             diff_hru = np.abs(matrix_to_change - abs_diff)
                             min_difference_index = np.argmin(diff_hru)
                             abs_diff -= matrix_to_change[min_difference_index]
-                            if change_index[min_difference_index] == False:
+                            if not change_index[min_difference_index]:
                                 change_index[min_difference_index] = True
-                            else: break
+                            else:
+                                break
                         choices, frq = np.unique(land_use[nagrl_indexes == 1 if diff > 0 else agrl_indexes == 1],
                                                  return_counts=True)
                         choice = np.random.choice(choices, np.sum(change_index), p=frq / np.sum(frq))
@@ -97,22 +117,24 @@ class ModeloSWATPlus(ModeloBF):
                     else:
                         símismo.servidor.cambiar(str(var), var.var.obt_val())
 
-            # Correr un paso de simulaccion
+            # EN:   Running a time-step of the simulation
+            # ES:   Correr un paso de simulaccion
             símismo.servidor.incrementar(rebanada.n_pasos)
-            # Obtiene los valores de eso paso de la simulaccion
+
+            # EN:   Getting the current variable values for this time-step of simulation
+            # ES:   Obtiene los valores de eso paso de la simulaccion
             for var in rebanada.resultados:
-                if var.var.egr and str(var) not in ['2_yield', '4_yield', 'total_aqu_a%flo_cha', 'banana_land_use_area',
-                                                    'corn_land_use_area']:
+                if var.var.egr and str(var) not in ['2_yield', '4_yield', 'banana_land_use_area', 'corn_land_use_area']:
                     resultados = símismo.servidor.recibir(str(var))
                     símismo.variables[str(var)].poner_val(resultados)
                 elif var.var.egr and str(var) in ['2_yield', '4_yield']:
-                    resultados = símismo.servidor.recibir('bsn_crop_yld')[int(str(var)[0])-1]
+                    resultados = símismo.servidor.recibir('bsn_crop_yld')[int(str(var)[0]) - 1]
                     símismo.variables[str(var)].poner_val(resultados)
                 elif var.var.egr and str(var) == 'banana_land_use_area':
-                    resultados = np.sum(símismo.área_de_tierra * np.where(np.isin(land_use, [2, 3]), 1, 0))
+                    resultados = np.sum(símismo.hru_areas * np.where(np.isin(land_use, [2, 3]), 1, 0))
                     símismo.variables[str(var)].poner_val(resultados)
                 elif var.var.egr and str(var) == 'corn_land_use_area':
-                    resultados = np.sum(símismo.área_de_tierra * np.where(np.isin(land_use, [3, 7, 8]), 1, 0))
+                    resultados = np.sum(símismo.hru_areas * np.where(np.isin(land_use, [3, 7, 8]), 1, 0))
                     símismo.variables[str(var)].poner_val(resultados)
 
             super().incrementar(rebanada=rebanada)
@@ -121,33 +143,9 @@ class ModeloSWATPlus(ModeloBF):
     def paralelizable(símismo):
         return True
 
-    def deter_uso_de_tierra(símismo):
-        with open(símismo.archivo + '/landuse.lum', 'r') as archivo_uso_de_tierra:
-            counter = 0
-            for line in archivo_uso_de_tierra:
-                if 1 < counter:
-                    split_line = line.split(' ')
-                    uso_de_tierra = split_line[0]
-                    print("Landuse: " + uso_de_tierra + "\tNumber: " + str(counter - 1))
-                counter += 1
-
-    def deter_área(símismo):
-        with open(símismo.archivo + '/hru.con', 'r') as símismo.archivo_hru:
-            símismo.área_de_tierra = []
-            counter = 0
-            for line in símismo.archivo_hru:
-                if 1 < counter:
-                    split_line = line.split('    ')
-                    area = split_line[6]
-                    símismo.área_de_tierra.append(float(area))
-                counter += 1
-
-    def add_luses(símismo, uses: [], classification='AGRL'):
-        if classification == 'AGRL':
-            símismo.agrl_uses = uses
-
+    # EN:   Closing the model
+    # ES:   Cerrar el modelo
     def cerrar(símismo):
-        # close model
         shutil.rmtree(símismo.direc_trabajo, ignore_errors=True)
         if símismo.connectar:
             símismo.servidor.cerrar()
@@ -163,3 +161,39 @@ class ModeloSWATPlus(ModeloBF):
 
     def instalado(cls):
         return cls.obt_conf('exe') is not None
+
+# ----------------------------------------------------------------------------------------------------------------------
+# EN:   Utility functions not required by Tinamït but likely useful in coupling of many SWAT+ models.
+# ES:   Funciones de utilidad no requeridas por Tinamït, pero probablemente útiles en el acoplamiento de muchos
+#       modelos SWAT+.
+
+    # EN:   Prints landuse types and their corresponding numerical value
+    # ES:   Imprime los tipos de uso de la tierra y su correspondiente valor numérico
+    def print_landuse_types(símismo):
+        with open(símismo.archivo + '/landuse.lum', 'r') as landuseFile:
+            counter = 0
+            for line in landuseFile:
+                if 1 < counter:
+                    split_line = line.split(' ')
+                    landuse_name = split_line[0]
+                    print("Landuse: " + landuse_name + "\tNumber: " + str(counter - 1))
+                counter += 1
+
+    # EN:   Reads SWAT+ input file "hru.con" to store the size of all the HRU's
+    # ES:   Lee el archivo de entrada SWAT+ "hru.con" para almacenar el tamaño de todas las HRU
+    def get_hru_areas(símismo):
+        with open(símismo.archivo + '/hru.con', 'r') as símismo.archivo_hru:
+            símismo.hru_areas = []
+            counter = 0
+            for line in símismo.archivo_hru:
+                if 1 < counter:
+                    split_line = line.split('    ')
+                    area = split_line[6]
+                    símismo.hru_areas.append(float(area))
+                counter += 1
+
+    # EN:   Allows grouping of landuses into specific landuse types
+    # ES:   Permite agrupar los landuses en tipos específicos de landuse
+    def group_luses(símismo, uses: [], classification='AGRL'):
+        if classification == 'AGRL':
+            símismo.agrl_uses = uses

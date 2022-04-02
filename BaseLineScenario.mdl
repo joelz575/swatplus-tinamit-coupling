@@ -1,0 +1,225 @@
+{UTF-8}
+"Banana Yields (SWAT+)"=
+	6000
+	~	tonne
+	~		|
+
+"Banana Cultivation Area (SWAT+)"=
+	5000
+	~	ha
+	~		|
+
+"Corn Cultivation Area (SWAT+)"=
+	5000
+	~	ha
+	~		|
+
+Net Farmer Income=
+	"Corn Yields (SWAT+)"/"Corn Cultivation Area (SWAT+)"*Corn Selling Price+"Banana Yields (SWAT+)"/\
+	"Banana Cultivation Area (SWAT+)"*Banana Selling Price-Production Cost
+	~	$/ha
+	~		|
+
+"Corn Yields (SWAT+)"=
+	6000
+	~	tonne
+	~		|
+
+Runnoff into channels=
+	0
+	~	m*m*m
+	~		|
+
+Corn Selling Price=
+	265
+	~	$/tonne
+	~		|
+
+Agricultural Land= INTEG (
+	Cultivation Rate,
+		11583)
+	~	ha
+	~		|
+
+Cultivation Rate=
+	MAX(MIN( Desired Agricultural Land-Agricultural Land , "Non-Agricultural Land" ), -Agricultural Land\
+		)/5
+	~	ha/year
+	~		|
+
+Desired Agricultural Land=
+	Supply Elasticity Lookup(Expected Profit/Reference Profit)*Max Land per Person*Population
+	~	ha
+	~		|
+
+Fertilizer Subsidy=
+	0
+	~
+	~		|
+
+Expected Profit=
+	Net Farmer Income
+	~	$/ha
+	~		|
+
+Supply Elasticity Lookup(
+	[(0,0)-(1,1)],(0,0),(0.235474,0.0921053),(0.370031,0.223684),(0.434251,0.333333),(0.477064\
+		,0.425439),(0.504587,0.495614),(0.547401,0.618421),(0.602446,0.780702),(0.737003,0.890351\
+		),(1,1))
+	~	
+	~		|
+
+Max Land per Person=
+	110
+	~	ha
+	~		|
+
+Reference Profit=
+	1350
+	~	$/ha/year
+	~		|
+
+"Non-Agricultural Land"= INTEG (
+	-Cultivation Rate,
+		11636)
+	~	
+	~		|
+
+Production Cost=
+	(Base FertilizerN Cost*(1-Fertilizer Subsidy))+Base Cost
+	~	$/ha
+	~		|
+
+Population=
+	20000
+	~	people
+	~		|
+
+Base FertilizerN Cost=
+	1400
+	~	$/ha
+	~		|
+
+Banana Selling Price=
+	302.8
+	~	$/tonne
+	~		|
+
+Base Cost=
+	200
+	~	$/ha
+	~		|
+
+********************************************************
+	.Control
+********************************************************~
+		Simulation Control Parameters
+	|
+
+FINAL TIME  = 8
+	~	year
+	~	The final time for the simulation.
+	|
+
+INITIAL TIME  = 0
+	~	year
+	~	The initial time for the simulation.
+	|
+
+SAVEPER  = 
+        TIME STEP
+	~	year [0,?]
+	~	The frequency with which output is stored.
+	|
+
+TIME STEP  = 1
+	~	year [0,?]
+	~	The time step for the simulation.
+	|
+
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*View 1
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,60,0
+10,1,Agricultural Land,892,242,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,2,"Non-Agricultural Land",610,258,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,3,"Corn Yields (SWAT+)",774,643,39,19,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,4,Banana Selling Price Lookup,328,650,47,19,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,5,Net Farmer Income,568,536,38,19,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,6,FertilizerN Requirement per ha,204,296,62,19,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+10,7,Production Cost,281,528,52,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,8,4,5,1,0,0,0,0,64,0,-1--1--1,,1|(440,636)|
+1,9,6,32,1,0,0,0,0,64,0,-1--1--1,,1|(239,369)|
+1,10,3,5,1,0,0,0,0,64,0,-1--1--1,,1|(680,607)|
+10,11,Base Cost,63,476,34,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,12,11,7,0,0,0,0,0,64,0,-1--1--1,,1|(158,498)|
+1,13,7,5,1,0,0,0,0,64,0,-1--1--1,,1|(405,552)|
+10,14,Desired Agricultural Land,878,328,55,19,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,15,17,1,4,0,0,22,0,0,0,-1--1--1,,1|(804,251)|
+1,16,17,2,68,0,0,22,2,0,0,-1--1--1,|12||0-0-0,1|(697,251)|
+11,17,618,751,251,6,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
+10,18,Cultivation Rate,751,270,50,11,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,19,14,18,0,0,0,0,0,64,0,-1--1--1,,1|(812,297)|
+1,20,1,18,1,0,0,0,0,64,0,-1--1--1,,1|(840,275)|
+1,21,2,18,1,0,0,0,0,64,0,-1--1--1,,1|(665,289)|
+10,22,Expected Profit,754,456,49,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,23,22,14,1,0,0,0,0,64,0,-1--1--1,,1|(816,408)|
+10,24,Supply Elasticity Lookup,904,406,53,19,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,25,24,14,1,0,0,0,0,64,0,-1--1--1,,1|(935,377)|
+10,26,Reference Profit,1078,256,51,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,27,26,14,0,0,0,0,0,64,0,-1--1--1,,1|(995,285)|
+10,28,Max Land per Person,1089,354,46,19,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,29,28,14,0,0,0,0,0,64,0,-1--1--1,,1|(994,342)|
+1,30,5,22,1,0,0,0,0,64,0,-1--1--1,,1|(705,492)|
+10,31,Total FertlizerN Use,397,240,51,19,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,32,FertilizerN Use per ha,277,402,49,19,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,33,32,7,1,0,0,0,0,64,0,-1--1--1,,1|(260,455)|
+1,34,1,31,1,0,0,0,0,64,0,-1--1--1,,1|(547,183)|
+1,35,32,31,1,0,0,0,0,64,0,-1--1--1,,1|(296,310)|
+10,36,FertilizerN Cost,87,387,51,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,37,36,7,0,0,0,0,0,64,0,-1--1--1,,1|(177,453)|
+10,38,Fertigation Policy,483,401,55,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,39,38,32,1,0,0,0,0,64,0,-1--1--1,,1|(399,383)|
+10,40,Population,698,340,34,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,41,40,14,0,0,0,0,0,64,0,-1--1--1,,1|(770,335)|
+10,42,"Banana Yields (SWAT+)",661,662,46,19,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,43,Corn Selling Price Lookup,449,681,58,19,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,44,43,5,0,0,0,0,0,64,0,-1--1--1,,1|(503,613)|
+1,45,42,5,0,0,0,0,0,64,0,-1--1--1,,1|(618,604)|
+10,46,Runnoff into channels,1208,209,51,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,47,"Banana Cultivation Area (SWAT+)",577,712,60,19,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,48,"Corn Cultivation Area (SWAT+)",774,585,53,19,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,49,47,5,0,0,0,0,0,64,0,-1--1--1,,1|(572,630)|
+1,50,48,5,0,0,0,0,0,64,0,-1--1--1,,1|(670,560)|
+///---\\\
+:L<%^E!@
+1:Current.vdfx
+9:Current
+23:0
+15:0,0,0,0,0,0
+19:60,0
+27:0,
+34:0,
+42:0
+72:0
+73:0
+4:Time
+5:"Banana Cultivation Area (SWAT+)"
+35:Date
+36:YYYY-MM-DD
+37:2000
+38:1
+39:1
+40:0
+41:0
+76:0
+77:0
+78:0
+79:0
+80:0
+81:0
+24:0
+25:8
+26:8
+75:
+43:

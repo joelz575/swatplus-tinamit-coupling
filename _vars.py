@@ -8,6 +8,8 @@ from tinamit.mod import Variable
 from tinamit_idm.puertos import IDMEnchufes
 
 
+# EN:   Getting the initial values of SWAT+ model variables
+# ES:   Obtener los valores iniciales de las variables del modelo SWAT+
 def gen_variables_swatp(archivo, exe, hru, cha, lte_hru, sd_ch) -> [Variable]:
     variables = []
     servidor = IDMEnchufes()
@@ -17,31 +19,47 @@ def gen_variables_swatp(archivo, exe, hru, cha, lte_hru, sd_ch) -> [Variable]:
         [exe, str(servidor.puerto), servidor.dirección],
         cwd=direc_trabajo
     )
+    # EN:   Activate the server
+    # ES:   Activar el servidor
     servidor.activar()
     for vr, info in _info_vars.items():
+        # EN:   Initialize SWAT+ variables
+        # ES:   Inicialización de variables SWAT+
         if ((vr != 'agrl_ha' and vr != '2_yield' and vr != '4_yield' and vr != 'total_aqu_a%flo_cha' and
              vr != 'banana_land_use_area' and vr != 'corn_land_use_area') and
                 ((info['type'] == 'hru' and hru) or (info['type'] == 'cha' and cha) or
-                                  (info['type'] == 'lte_hru' and lte_hru) or (info['type'] == 'sd_ch' and sd_ch))):
+                 (info['type'] == 'lte_hru' and lte_hru) or (info['type'] == 'sd_ch' and sd_ch))):
             variables.append(Variable(
                 nombre=vr, unid=info['unid'], ingr=info['ingr'], egr=info['egr'], inic=np.array(servidor.recibir(vr))
             ))
-        elif (hru and (vr == 'agrl_ha')):
+        # EN:   Handling special variables
+        # ES:   Manejo de variables especiales
+        elif hru and (vr == 'agrl_ha'):
             variables.append(Variable(
                 nombre=vr, unid=info['unid'], ingr=info['ingr'], egr=info['egr']))
-        elif(hru and (vr == 'banana_land_use_area' or vr == 'corn_land_use_area' or vr == '2_yield' or vr == '4_yield')):
+        elif hru and (vr == 'banana_land_use_area' or vr == 'corn_land_use_area' or vr == '2_yield' or vr == '4_yield'):
             variables.append(Variable(
                 nombre=vr, unid=info['unid'], ingr=info['ingr'], egr=info['egr'], inic=4000
             ))
-
+    # EN:   Closing
+    # ES:   Cerrar
     servidor.cerrar()
     proc.kill()
     shutil.rmtree(direc_trabajo, ignore_errors=True)
     return variables
 
 
-# Un diccionario de variables SWAT+. Ver la documentación SWAT+ para más detalles.
+# EN:   A dictionary of SWAT+ variables that are coupling supported
+#       Additionally 5 special variables are included that are useful for the case-study example.
+#       See the SWAT+ docs and source-codes for more details on SWAT+ variables.
+# ES:   Un diccionario de variables SWAT+ y 5 para este ejemplo. Ver la documentación SWAT+ para más detalles.
 _info_vars = {
+
+    # EN:   Case-study specific variables
+    # ES:   Variables para este ejemplo
+    'agrl_ha':
+        {'nombre': 'Area of Agricultural Land', 'unid': 'ha', 'ingr': True,
+         'egr': False, 'type': 'None'},
     'banana_land_use_area':
         {'nombre': 'banana land use area', 'unid': 'ha', 'ingr': False,
          'egr': True, 'type': 'hru'},
@@ -54,6 +72,9 @@ _info_vars = {
     '4_yield':
         {'nombre': 'yield of plant 4 (corn in this example)', 'unid': 'tonne', 'ingr': False,
          'egr': True, 'type': 'None'},
+
+    # EN:   SWAT+ variables that can be coupled using Tinamït
+    # ES:   Variables SWAT+ que puedan connectar con Tinamït
     'total_ch_out_y%flo':
         {'nombre': 'total yearly water outflow from channels in basin', 'unid': 'm^3', 'ingr': False,
          'egr': True, 'type': 'sd_ch'},
@@ -63,9 +84,6 @@ _info_vars = {
     'bsn_crop_yld':
         {'nombre': 'sum of yields by plants', 'unid': 'tonne', 'ingr': False,
          'egr': True, 'type': 'hru'},
-    'agrl_ha':
-        {'nombre': 'Area of Agricultural Land', 'unid': 'ha', 'ingr': True,
-         'egr': False, 'type': 'None'},
     'sd_props':
         {'nombre': 'Name Not Available', 'unid': '', 'ingr': False,
          'egr': True, 'type': 'sd_ch'},
@@ -101,9 +119,6 @@ _info_vars = {
          'egr': True, 'type': 'sd_ch'},
     'sd_shear_bnk':
         {'nombre': "bank shear coefficient - fraction of bottom shear", 'unid': '', 'ingr': False,
-         'egr': True, 'type': 'sd_ch'},
-    'sd_hc_erod':
-        {'nombre': "headcut erodibility", 'unid': '', 'ingr': False,
          'egr': True, 'type': 'sd_ch'},
     'sd_hc_co':
         {'nombre': "proportionality coefficient for head cut", 'unid': 'm/m', 'ingr': False,
@@ -364,9 +379,6 @@ _info_vars = {
     "hru_lumv%usle_p":
         {'nombre': 'Name Not Available', 'unid': '', 'ingr': False,
          'egr': True, 'type': 'hru'},
-    # "hru_lumv%usle_ls":
-    #    {'nombre': 'Name Not Available', 'unid': '', 'ingr': False,
-    #     'egr': True, 'type': 'hru'},
     "hru_lumv%usle_mult":
         {'nombre': 'Name Not Available', 'unid': '', 'ingr': False,
          'egr': True, 'type': 'hru'},
@@ -463,9 +475,6 @@ _info_vars = {
     "hru_ich_flood":
         {'nombre': 'Name Not Available', 'unid': '', 'ingr': False,
          'egr': True, 'type': 'hru'},
-    # "hru_cn_luse":
-    #    {'nombre': "curve number of HRU based on landuse", 'unid': '', 'ingr': False,
-    #     'egr': True, 'type': 'hru'},
     "luse":
         {'nombre': "HRU landuse variable (use this to change all dependent variables of landuse at once)",
          'unid': '', 'ingr': False, 'egr': True, 'type': 'hru'},
