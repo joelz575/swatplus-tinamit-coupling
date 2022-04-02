@@ -1,5 +1,4 @@
 from matplotlib import pyplot as plt
-
 # EN:   Tinamït imports
 # ES:   Importaciones de Tinamït
 from tinamit.conect import Conectado
@@ -39,7 +38,7 @@ for counter in range(3):
     # *SUGERENCIA*: es posible que los usuarios primero deseen usar print_landuse_types() para saber a qué uso de la
     # tierra se refieren los números
     swatPlus = ModeloSWATPlus('Usa_Basin_model', lte_hru=False, cha=False, sd_ch=True)
-    swatPlus.group_luses([2, 3, 7, 8, 9])
+    swatPlus.agrupar_usos_del_suelo([2, 3, 7, 8, 9])
 
     # EN:   Coupled model creation and connecting variables
     # ES:   Creación de modelos acoplados y conexión de variables

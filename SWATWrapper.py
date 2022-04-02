@@ -3,9 +3,9 @@ import shutil
 import socket
 import subprocess
 import tempfile
-import numpy as np
-
 from distutils.dir_util import copy_tree
+
+import numpy as np
 from tinamit.config import _ as ERR
 from tinamit.envolt.bf import ModeloBF
 from tinamit.mod import VariablesMod
@@ -68,7 +68,7 @@ class ModeloSWATPlus(ModeloBF):
 
             # EN:   More variable inicialization
             # ES:   Mas de inicialización de variables
-            símismo.deter_área()
+            símismo.deter_área_de_hrus()
 
         # EN:   Without connection
         # ES:   Sin acoplamiento
@@ -162,14 +162,14 @@ class ModeloSWATPlus(ModeloBF):
     def instalado(cls):
         return cls.obt_conf('exe') is not None
 
-# ----------------------------------------------------------------------------------------------------------------------
-# EN:   Utility functions not required by Tinamït but likely useful in coupling of many SWAT+ models.
-# ES:   Funciones de utilidad no requeridas por Tinamït, pero probablemente útiles en el acoplamiento de muchos
-#       modelos SWAT+.
+    # ----------------------------------------------------------------------------------------------------------------------
+    # EN:   Utility functions not required by Tinamït but likely useful in coupling of many SWAT+ models.
+    # ES:   Funciones de utilidad no requeridas por Tinamït, pero probablemente útiles en el acoplamiento de muchos
+    #       modelos SWAT+.
 
     # EN:   Prints landuse types and their corresponding numerical value
     # ES:   Imprime los tipos de uso de la tierra y su correspondiente valor numérico
-    def deter_uso_de_tierra(símismo):
+    def imprimir_usos_de_tierra(símismo):
         with open(símismo.archivo + '/landuse.lum', 'r') as archivo_uso_de_tierra:
             index = 0
             for line in archivo_uso_de_tierra:
@@ -181,7 +181,7 @@ class ModeloSWATPlus(ModeloBF):
 
     # EN:   Reads SWAT+ input file "hru.con" to store the size of all the HRU's
     # ES:   Lee el archivo de entrada SWAT+ "hru.con" para almacenar el tamaño de todas las HRU
-    def deter_área(símismo):
+    def deter_área_de_hrus(símismo):
         with open(símismo.archivo + '/hru.con', 'r') as símismo.archivo_hru:
             index = 0
             for line in símismo.archivo_hru:
