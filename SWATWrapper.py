@@ -39,7 +39,11 @@ class ModeloSWATPlus(ModeloBF):
         # EN:   Initializing variables necessary for coupling
         # ES:   Inicialización de variables necesarias para el acoplamiento
         símismo.HUÉSPED = socket.gethostbyname(socket.gethostname())
+        símismo.archivo = archivo
         símismo.connectar = connectar
+        símismo.variables = gen_variables_swatp(símismo.archivo, símismo.obt_conf("exe"), hru, cha, lte_hru, sd_ch)
+        variablesMod = VariablesMod(variables=símismo.variables)
+
         if connectar:
             símismo.servidor = IDMEnchufes()
 
@@ -68,7 +72,7 @@ class ModeloSWATPlus(ModeloBF):
 
             # EN:   More variable inicialization
             # ES:   Mas de inicialización de variables
-            símismo.get_hru_areas()
+            símismo.deter_área()
 
         # EN:   Without connection
         # ES:   Sin acoplamiento
@@ -93,8 +97,8 @@ class ModeloSWATPlus(ModeloBF):
                         land_use = np.array(símismo.servidor.recibir(("luse")), dtype=int)
                         agrl_indexes = np.where(np.isin(land_use, símismo.agrl_uses), 1, 0)
                         nagrl_indexes = np.where(agrl_indexes == 1, 0, 1)
-                        nagrl_areas = nagrl_indexes * símismo.hru_areas
-                        agrl_areas = agrl_indexes * símismo.hru_areas
+                        nagrl_areas = nagrl_indexes * símismo.área_de_tierra
+                        agrl_areas = agrl_indexes * símismo.área_de_tierra
                         agrl_area = np.sum(agrl_areas)
                         change_index = np.full(land_use.shape, False)
                         diff = agrl_area - var.var.obt_val()
@@ -169,31 +173,49 @@ class ModeloSWATPlus(ModeloBF):
 
     # EN:   Prints landuse types and their corresponding numerical value
     # ES:   Imprime los tipos de uso de la tierra y su correspondiente valor numérico
-    def print_landuse_types(símismo):
-        with open(símismo.archivo + '/landuse.lum', 'r') as landuseFile:
+    def deter_uso_de_tierra(símismo):
+        with open(símismo.archivo + '/landuse.lum', 'r') as archivo_uso_de_tierra:
             counter = 0
-            for line in landuseFile:
+            for line in archivo_uso_de_tierra:
                 if 1 < counter:
                     split_line = line.split(' ')
-                    landuse_name = split_line[0]
-                    print("Landuse: " + landuse_name + "\tNumber: " + str(counter - 1))
+                    uso_de_tierra = split_line[0]
+                    print("Landuse: " + uso_de_tierra + "\tNumber: " + str(counter - 1))
                 counter += 1
 
     # EN:   Reads SWAT+ input file "hru.con" to store the size of all the HRU's
     # ES:   Lee el archivo de entrada SWAT+ "hru.con" para almacenar el tamaño de todas las HRU
-    def get_hru_areas(símismo):
+    def deter_área(símismo):
         with open(símismo.archivo + '/hru.con', 'r') as símismo.archivo_hru:
-            símismo.hru_areas = []
+            símismo.área_de_tierra = []
             counter = 0
             for line in símismo.archivo_hru:
                 if 1 < counter:
                     split_line = line.split('    ')
                     area = split_line[6]
-                    símismo.hru_areas.append(float(area))
+                    símismo.área_de_tierra.append(float(area))
                 counter += 1
 
     # EN:   Allows grouping of landuses into specific landuse types
     # ES:   Permite agrupar los landuses en tipos específicos de landuse
-    def group_luses(símismo, uses: [], classification='AGRL'):
+    def agrupar_usos_del_suelo(símismo, uses: [], classification='AGRL'):
         if classification == 'AGRL':
             símismo.agrl_uses = uses
+
+    def cerrar(símismo):
+        # close model
+        shutil.rmtree(símismo.direc_trabajo, ignore_errors=True)
+        if símismo.connectar:
+            símismo.servidor.cerrar()
+            símismo.proc.kill()
+
+    def cambiar_vals(símismo, valores):
+        super().cambiar_vals(valores)
+
+    def _correr_hasta_final(símismo):
+        if símismo.connectar:
+            símismo.servidor.finalizar()
+        return None
+
+    def instalado(cls):
+        return cls.obt_conf('exe') is not None
