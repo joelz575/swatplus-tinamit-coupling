@@ -84,9 +84,9 @@ _info_vars = {
     'bsn_crop_yld':
         {'nombre': 'sum of yields by plants', 'unid': 'tonne', 'ingr': False,
          'egr': True, 'type': 'hru'},
-    'sd_props':
-        {'nombre': 'Name Not Available', 'unid': '', 'ingr': False,
-         'egr': True, 'type': 'sd_ch'},
+    #'sd_props':
+    #    {'nombre': 'Name Not Available', 'unid': '', 'ingr': False,
+    #     'egr': True, 'type': 'sd_ch'},
     'sd_obj_no':
         {'nombre': 'Name Not Available', 'unid': '', 'ingr': False,
          'egr': True, 'type': 'sd_ch'},

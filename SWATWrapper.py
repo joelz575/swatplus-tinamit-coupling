@@ -141,7 +141,7 @@ class ModeloSWATPlus(ModeloBF):
             print("DONE INCREMENTAR")
 
     def paralelizable(símismo):
-        return True
+        return False
 
     # EN:   Closing the model
     # ES:   Cerrar el modelo
