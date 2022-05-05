@@ -114,35 +114,35 @@ for counter in range(3):
     # ES:   Graficación de los resultados
     graph1.fill_between(range(simulation_years+1), agricultural_land_mean + agricultural_land_std,
                         agricultural_land_mean - agricultural_land_std, hatch=fill_styles[counter],
-                        color=fill_color[counter], alpha=0.5)
+                        color=fill_color[counter], alpha=0.3)
     graph1.plot(agricultural_land_mean, linestyle=style, linewidth=3, color=line_color[counter])
     graph1.set_title('Agricultural Land (ha)')
     graph1.grid(True)
 
     graph2.fill_between(range(simulation_years+1), no3_concentration_mean + no3_concentration_std,
                         no3_concentration_mean - no3_concentration_std, hatch=fill_styles[counter],
-                        color=fill_color[counter], alpha=0.5)
+                        color=fill_color[counter], alpha=0.3)
     graph2.plot(no3_concentration_mean, linestyle=style, linewidth=3, color=line_color[counter])
     graph2.set_title('Average Channel NO3-N Concentration (mg/L)')
     graph2.grid(True)
 
     graph3.fill_between(range(simulation_years+1), banana_production_mean + banana_production_std,
                         banana_production_mean - banana_production_std, hatch=fill_styles[counter],
-                        color=fill_color[counter], alpha=0.5)
+                        color=fill_color[counter], alpha=0.3)
     graph3.plot(banana_production_mean, linestyle=style, linewidth=3, color=line_color[counter])
     graph3.set_title('Banana Yield (t)')
     graph3.grid(True)
 
     graph4.fill_between(range(simulation_years+1), corn_production_mean + corn_production_std,
                         corn_production_mean - corn_production_std, hatch=fill_styles[counter],
-                        color=fill_color[counter], alpha=0.5)
+                        color=fill_color[counter], alpha=0.3)
     graph4.plot(corn_production_mean, linestyle=style, linewidth=3, color=line_color[counter])
     graph4.set_title('Corn Yield (t)')
     graph4.grid(True)
 
     graph5.fill_between(range(simulation_years+1), banana_area_mean + banana_area_std,
                         banana_area_mean - banana_area_std, hatch=fill_styles[counter], color=fill_color[counter],
-                        alpha=0.5)
+                        alpha=0.3)
     graph5.plot(banana_area_mean, linestyle=style, linewidth=3, color=line_color[counter])
     graph5.set_title('Banana Cultivation Area (ha)')
     graph5.set_xlabel('Years')
@@ -150,7 +150,7 @@ for counter in range(3):
 
     graph6.fill_between(range(simulation_years+1), corn_area_mean + corn_area_std,
                         corn_area_mean - corn_area_std, hatch=fill_styles[counter], color=fill_color[counter],
-                        alpha=0.5)
+                        alpha=0.3)
     graph6.plot(corn_area_mean, linestyle=style, linewidth=3, color=line_color[counter])
     graph6.set_title('Corn Cultivation Area (ha)')
     graph6.set_xlabel('Years')
