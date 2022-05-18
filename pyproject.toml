@@ -7,8 +7,8 @@ authors = ["joelz575 <joel.harms@mail.mcgill.ca>"]
 [tool.poetry.dependencies]
 python = "^3.8"
 tinamit = "^2.0.3"
-tinamit-idm = "^0.1.0"
 Babel = "^2.9.1"
+tinamit-idm = "^0.2.4"
 
 [tool.poetry.dev-dependencies]
 
