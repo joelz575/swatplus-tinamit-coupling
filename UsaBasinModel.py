@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from matplotlib import pyplot as plt
 # EN:   Tinamït imports
@@ -26,7 +27,9 @@ fill_styles = ['/', '|', 'X']
 
 # EN:   Specifying SWAT+ model executable to be used
 # ES:   Especificación del ejecutable del modelo SWAT+ que se va a utilizar
-ModeloSWATPlus.estab_conf('exe', '/home/joelz/PycharmProjects/swatplus/build/bin/swatplus_exe')
+BASE_DIR = os.path.split(os.path.split(__file__)[0])[0]
+swat_exe = os.path.join(BASE_DIR, "swatplus/build/bin/swatplus_exe")
+ModeloSWATPlus.estab_conf('exe', swat_exe)
 
 # EN:   Adding 'year' to the Tinamït dictionary since the Vensim model is in English
 # ES:   Añadir 'año' al diccionario Tinamït ya que el modelo Vensim está en inglés

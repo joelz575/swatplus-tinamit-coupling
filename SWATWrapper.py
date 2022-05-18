@@ -125,10 +125,10 @@ class ModeloSWATPlus(ModeloBF):
             # ES:   Obtiene los valores de eso paso de la simulaccion
             for var in rebanada.resultados:
                 if var.var.egr and str(var) not in ['2_yield', '4_yield', 'banana_land_use_area', 'corn_land_use_area']:
-                    resultados = símismo.servidor.recibir(str(var))
+                    resultados = símismo.servidor.recibir(str(var), precisión=4)
                     símismo.variables[str(var)].poner_val(resultados)
                 elif var.var.egr and str(var) in ['2_yield', '4_yield']:
-                    resultados = símismo.servidor.recibir('bsn_crop_yld')[int(str(var)[0]) - 1]
+                    resultados = símismo.servidor.recibir('bsn_crop_yld', precisión=4)[int(str(var)[0]) - 1]
                     símismo.variables[str(var)].poner_val(resultados)
                 elif var.var.egr and str(var) == 'banana_land_use_area':
                     resultados = np.sum(símismo.área_de_hrus * np.where(np.isin(usos_de_tierra, [2, 3]), 1, 0))
