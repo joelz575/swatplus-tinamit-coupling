@@ -119,44 +119,48 @@ for counter in range(3):
                         agricultural_land_mean - agricultural_land_std, hatch=fill_styles[counter],
                         color=fill_color[counter], alpha=0.3)
     graph1.plot(agricultural_land_mean, linestyle=style, linewidth=3, color=line_color[counter])
-    graph1.set_title('Agricultural Land (ha)')
+    graph1.set_title('Agricultural Land', fontweight='bold')
+    graph1.set_ylabel('Area (ha)', fontweight='bold')
     graph1.grid(True)
 
     graph2.fill_between(range(simulation_years+1), no3_concentration_mean + no3_concentration_std,
                         no3_concentration_mean - no3_concentration_std, hatch=fill_styles[counter],
                         color=fill_color[counter], alpha=0.3)
     graph2.plot(no3_concentration_mean, linestyle=style, linewidth=3, color=line_color[counter])
-    graph2.set_title('Average Channel NO3-N Concentration (mg/L)')
+    graph2.set_title('Channel Nitrate-Nitrogen', fontweight='bold')
+    graph2.set_ylabel('Average Concentration (mg/L)', fontweight='bold')
     graph2.grid(True)
 
     graph3.fill_between(range(simulation_years+1), banana_production_mean + banana_production_std,
                         banana_production_mean - banana_production_std, hatch=fill_styles[counter],
                         color=fill_color[counter], alpha=0.3)
     graph3.plot(banana_production_mean, linestyle=style, linewidth=3, color=line_color[counter])
-    graph3.set_title('Banana Yield (t)')
+    graph3.set_title('Banana',fontsize=13, fontweight='bold')
+    graph3.set_ylabel('Yield (t)', fontweight='bold')
     graph3.grid(True)
 
     graph4.fill_between(range(simulation_years+1), corn_production_mean + corn_production_std,
                         corn_production_mean - corn_production_std, hatch=fill_styles[counter],
                         color=fill_color[counter], alpha=0.3)
     graph4.plot(corn_production_mean, linestyle=style, linewidth=3, color=line_color[counter])
-    graph4.set_title('Corn Yield (t)')
+    graph4.set_title('Corn',fontsize=13, fontweight='bold')
+    graph4.set_ylabel('Yield (t)', fontweight='bold')
     graph4.grid(True)
 
     graph5.fill_between(range(simulation_years+1), banana_area_mean + banana_area_std,
                         banana_area_mean - banana_area_std, hatch=fill_styles[counter], color=fill_color[counter],
                         alpha=0.3)
     graph5.plot(banana_area_mean, linestyle=style, linewidth=3, color=line_color[counter])
-    graph5.set_title('Banana Cultivation Area (ha)')
-    graph5.set_xlabel('Years')
+    graph5.set_ylabel('Cultivation Area (ha)', fontweight='bold')
+    graph5.set_xlabel('Years', fontweight='bold')
     graph5.grid(True)
 
     graph6.fill_between(range(simulation_years+1), corn_area_mean + corn_area_std,
                         corn_area_mean - corn_area_std, hatch=fill_styles[counter], color=fill_color[counter],
                         alpha=0.3)
     graph6.plot(corn_area_mean, linestyle=style, linewidth=3, color=line_color[counter])
-    graph6.set_title('Corn Cultivation Area (ha)')
-    graph6.set_xlabel('Years')
+    graph6.set_ylabel('Cultivation Area (ha)', fontweight='bold')
+    graph6.set_xlabel('Years', fontweight='bold')
     graph6.grid(True)
 plt.subplot(3, 2, 1)
 plt.legend(["No-Subsidy-Scenario", "45%-Subsidy-Scenario", "90%-Subsidy-Scenario"])
