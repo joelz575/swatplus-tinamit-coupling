@@ -1,0 +1,10 @@
+tinamit==2.0.3
+pysd==1.9.1
+babel==2.9.1
+black==21.12b0
+click==7.1.2
+parsimonious==0.8.1
+pytest==7.2.0
+python-dateutil==2.8.2
+tinamit-idm==0.2.4
+pandas==1.4.2

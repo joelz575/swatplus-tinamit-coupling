@@ -33,7 +33,7 @@ ModeloSWATPlus.estab_conf('exe', swat_exe)
 
 # EN:   Adding 'year' to the Tinamït dictionary since the Vensim model is in English
 # ES:   Añadir 'año' al diccionario Tinamït ya que el modelo Vensim está en inglés
-agregar_trad('año', 'year', leng_trad='en', leng_orig='es')
+agregar_trad('año', 'year', leng_trad='en', leng_orig='es', guardar=True)
 
 # EN:   Initializing vensim model wrappers for multiple scenarios
 # ES:   Inicialización de contenedores de modelos vensim para varios escenarios
