@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from matplotlib import pyplot as plt
+
 # EN:   Tinamït imports
 # ES:   Importaciones de Tinamït
 from tinamit.conect import Conectado
@@ -13,9 +14,9 @@ from tinamit.unids import agregar_trad
 from SWATWrapper import ModeloSWATPlus
 
 # EN:   Number of years of simulation
+# ES:   Número de años de simulación
 simulation_years = 10
 model_runs = 3
-
 
 # EN:   Preparing for visualization of results
 # ES:   Preparación para la visualización de los resultados
