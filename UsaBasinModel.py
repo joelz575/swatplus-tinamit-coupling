@@ -1,5 +1,8 @@
 import os
+import subprocess
+
 import numpy as np
+import struct
 from matplotlib import pyplot as plt
 
 # EN:   Tinamït imports
@@ -16,7 +19,7 @@ from SWATWrapper import ModeloSWATPlus
 # EN:   Number of years of simulation
 # ES:   Número de años de simulación
 simulation_years = 10
-model_runs = 3
+model_runs = 10
 
 # EN:   Preparing for visualization of results
 # ES:   Preparación para la visualización de los resultados
@@ -67,28 +70,51 @@ for counter in range(3):
     corn_area_std = np.zeros(simulation_years+1)
 
     for run in range(model_runs):
+        try:
+            # EN:   Creating SWAT+ model instance and grouping landuses
+            # *HINT*: users might first want to use imprimir_usos_de_tierra() to know which landuse the numerals refer to
+            # ES:   Creación de instancias de modelo SWAT + y agrupación de usos terrestres
+            # *SUGERENCIA*: es posible que los usuarios primero deseen usar imprimir_usos_de_tierra() para saber a qué uso
+            # de la tierra se refieren los números
+            swatPlus = ModeloSWATPlus('Usa_Basin_model', lte_hru=False, cha=False, sd_ch=True)
+            swatPlus.agrupar_usos_del_suelo([2, 3, 7, 8, 9])
 
-        # EN:   Creating SWAT+ model instance and grouping landuses
-        # *HINT*: users might first want to use imprimir_usos_de_tierra() to know which landuse the numerals refer to
-        # ES:   Creación de instancias de modelo SWAT + y agrupación de usos terrestres
-        # *SUGERENCIA*: es posible que los usuarios primero deseen usar imprimir_usos_de_tierra() para saber a qué uso
-        # de la tierra se refieren los números
-        swatPlus = ModeloSWATPlus('Usa_Basin_model', lte_hru=False, cha=False, sd_ch=True)
-        swatPlus.agrupar_usos_del_suelo([2, 3, 7, 8, 9])
+            # EN:   Coupled model creation and connecting variables
+            # ES:   Creación de modelos acoplados y conexión de variables
+            coupledModel = Conectado(swatPlus, sdModel)
+            coupledModel.conectar('Agricultural Land', 'agrl_ha', True)
+            coupledModel.conectar('"Banana Yields (SWAT+)"', '2_yield', False)
+            coupledModel.conectar('"Corn Yields (SWAT+)"', '4_yield', False)
+            coupledModel.conectar('Runnoff into channels', 'total_ch_out_y%flo', False)
+            coupledModel.conectar('"Banana Cultivation Area (SWAT+)"', 'banana_land_use_area', False)
+            coupledModel.conectar('"Corn Cultivation Area (SWAT+)"', 'corn_land_use_area', False)
 
-        # EN:   Coupled model creation and connecting variables
-        # ES:   Creación de modelos acoplados y conexión de variables
-        coupledModel = Conectado(swatPlus, sdModel)
-        coupledModel.conectar('Agricultural Land', 'agrl_ha', True)
-        coupledModel.conectar('"Banana Yields (SWAT+)"', '2_yield', False)
-        coupledModel.conectar('"Corn Yields (SWAT+)"', '4_yield', False)
-        coupledModel.conectar('Runnoff into channels', 'total_ch_out_y%flo', False)
-        coupledModel.conectar('"Banana Cultivation Area (SWAT+)"', 'banana_land_use_area', False)
-        coupledModel.conectar('"Corn Cultivation Area (SWAT+)"', 'corn_land_use_area', False)
+            # EN:   Running the coupled model simulation
+            # ES:   Ejecución de la simulación del modelo acoplado
+            results = coupledModel.simular(EspecTiempo(simulation_years, '2006-1-1'))
+        except BaseException as e:
+            # EN:   Creating SWAT+ model instance and grouping landuses
+            # *HINT*: users might first want to use imprimir_usos_de_tierra() to know which landuse the numerals refer to
+            # ES:   Creación de instancias de modelo SWAT + y agrupación de usos terrestres
+            # *SUGERENCIA*: es posible que los usuarios primero deseen usar imprimir_usos_de_tierra() para saber a qué uso
+            # de la tierra se refieren los números
+            swatPlus = ModeloSWATPlus('Usa_Basin_model', lte_hru=False, cha=False, sd_ch=True)
+            swatPlus.agrupar_usos_del_suelo([2, 3, 7, 8, 9])
 
-        # EN:   Running the coupled model simulation
-        # ES:   Ejecución de la simulación del modelo acoplado
-        results = coupledModel.simular(EspecTiempo(simulation_years, '2006-1-1'))
+            # EN:   Coupled model creation and connecting variables
+            # ES:   Creación de modelos acoplados y conexión de variables
+            coupledModel = Conectado(swatPlus, sdModel)
+            coupledModel.conectar('Agricultural Land', 'agrl_ha', True)
+            coupledModel.conectar('"Banana Yields (SWAT+)"', '2_yield', False)
+            coupledModel.conectar('"Corn Yields (SWAT+)"', '4_yield', False)
+            coupledModel.conectar('Runnoff into channels', 'total_ch_out_y%flo', False)
+            coupledModel.conectar('"Banana Cultivation Area (SWAT+)"', 'banana_land_use_area', False)
+            coupledModel.conectar('"Corn Cultivation Area (SWAT+)"', 'corn_land_use_area', False)
+
+            # EN:   Running the coupled model simulation
+            # ES:   Ejecución de la simulación del modelo acoplado
+            results = coupledModel.simular(EspecTiempo(simulation_years, '2006-1-1'))
+
         agricultural_land[run] = results['mds']['Agricultural Land'].vals
         no3_concentration[run] = (1000 * results['SWATPlus']['total_ch_out_y%no3'].vals /
                              results['SWATPlus']['total_ch_out_y%flo'].vals / 86400)
