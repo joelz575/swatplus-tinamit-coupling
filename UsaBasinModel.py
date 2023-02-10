@@ -189,6 +189,6 @@ for counter in range(3):
     graph6.set_ylabel('Cultivation Area (ha)', fontweight='bold')
     graph6.set_xlabel('Years', fontweight='bold')
     graph6.grid(True)
-plt.subplot(3, 2, 1)
-plt.legend(["No-Subsidy-Scenario", "45%-Subsidy-Scenario", "90%-Subsidy-Scenario"])
+plt.subplot(3, 2, 2)
+plt.legend(["", "No-Subsidy-Scenario", "", "45%-Subsidy-Scenario", "", "90%-Subsidy-Scenario"], loc='upper left')
 plt.show()
